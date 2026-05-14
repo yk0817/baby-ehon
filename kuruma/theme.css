@@ -226,17 +226,17 @@
 }
 .car svg { width: 100%; height: auto; display: block; }
 .car--run {
-  animation: carRun 6s linear infinite, carBob 0.5s ease-in-out infinite;
+  animation: carRun 12s linear infinite, carBob 0.7s ease-in-out infinite;
 }
 .car--depart {
-  animation: carDepart 7s var(--ease-out-expo) infinite;
+  animation: carDepart 14s var(--ease-out-expo) infinite;
 }
 .car--curve {
-  animation: carCurve 7s var(--ease-in-out-soft) infinite;
+  animation: carCurve 14s var(--ease-in-out-soft) infinite;
 }
 .car--stop {
   bottom: 12%;
-  animation: carStop 8s var(--ease-in-out-soft) infinite;
+  animation: carStop 16s var(--ease-in-out-soft) infinite;
 }
 @keyframes carRun {
   from { transform: translateX(0); }
