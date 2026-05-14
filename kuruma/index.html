@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="theme-color" content="#b3e5fc" />
+    <title>__NAME__くんの くるま</title>
+    <link rel="stylesheet" href="../shared/ehon.css" />
+    <link rel="stylesheet" href="theme.css" />
+  </head>
+  <body>
+    <main id="book" aria-label="くるまの えほん">
+
+      <!-- ページ1: しゅっぱつ -->
+      <section class="page is-active" data-scene="shuppatsu">
+        <div class="sky sky--morning">
+          <div class="sun"></div>
+          <div class="cloud cloud--a"></div>
+          <div class="house house--1"></div>
+          <div class="house house--2"></div>
+          <div class="road"></div>
+          <div class="road-line"></div>
+          <div class="car car--depart" aria-hidden="true">
+            <svg viewBox="0 0 240 120" xmlns="http://www.w3.org/2000/svg">
+              <!-- 影 -->
+              <ellipse cx="120" cy="108" rx="100" ry="6" fill="rgba(0,0,0,0.15)"/>
+              <!-- ボディ下段 -->
+              <rect x="20" y="60" width="200" height="36" rx="14" fill="#ff6b9d" stroke="#1a1a2e" stroke-width="4"/>
+              <!-- ボディ上段（屋根） -->
+              <path d="M55 60 Q70 28 110 28 L150 28 Q180 28 195 60 Z"
+                    fill="#ffffff" stroke="#1a1a2e" stroke-width="4" stroke-linejoin="round"/>
+              <!-- まど -->
+              <path d="M64 56 Q78 36 110 36 L130 36 L130 56 Z" fill="#9bd2ff" stroke="#1a1a2e" stroke-width="3"/>
+              <path d="M134 36 L150 36 Q176 36 188 56 L134 56 Z" fill="#9bd2ff" stroke="#1a1a2e" stroke-width="3"/>
+              <!-- ヘッドライト + 顔 -->
+              <circle cx="208" cy="74" r="9" fill="#ffe066" stroke="#1a1a2e" stroke-width="3"/>
+              <circle cx="32"  cy="74" r="7" fill="#ff5252" stroke="#1a1a2e" stroke-width="3"/>
+              <!-- 笑顔（フロントグリル） -->
+              <path d="M180 86 Q200 96 218 88" fill="none" stroke="#1a1a2e" stroke-width="3" stroke-linecap="round"/>
+              <!-- タイヤ -->
+              <circle cx="68"  cy="100" r="14" fill="#1a1a2e"/>
+              <circle cx="68"  cy="100" r="6"  fill="#999"/>
+              <circle cx="172" cy="100" r="14" fill="#1a1a2e"/>
+              <circle cx="172" cy="100" r="6"  fill="#999"/>
+            </svg>
+          </div>
+        </div>
+        <div class="title-banner"><span>__NAME__くんの<br/>くるま</span></div>
+      </section>
+
+      <!-- ページ2: まち -->
+      <section class="page" data-scene="machi">
+        <div class="narration">__NAME__くん、<br/>まち はしるよ</div>
+        <div class="sky sky--town">
+          <div class="cloud cloud--a"></div>
+          <div class="house house--1"></div>
+          <div class="house house--2"></div>
+          <div class="house house--3"></div>
+          <div class="house house--4"></div>
+          <div class="road"></div>
+          <div class="road-line"></div>
+          <div class="car car--run" aria-hidden="true">
+            <svg viewBox="0 0 240 120" xmlns="http://www.w3.org/2000/svg">
+              <ellipse cx="120" cy="108" rx="100" ry="6" fill="rgba(0,0,0,0.15)"/>
+              <rect x="20" y="60" width="200" height="36" rx="14" fill="#ffd166" stroke="#1a1a2e" stroke-width="4"/>
+              <path d="M55 60 Q70 28 110 28 L150 28 Q180 28 195 60 Z"
+                    fill="#ffffff" stroke="#1a1a2e" stroke-width="4" stroke-linejoin="round"/>
+              <path d="M64 56 Q78 36 110 36 L130 36 L130 56 Z" fill="#9bd2ff" stroke="#1a1a2e" stroke-width="3"/>
+              <path d="M134 36 L150 36 Q176 36 188 56 L134 56 Z" fill="#9bd2ff" stroke="#1a1a2e" stroke-width="3"/>
+              <circle cx="208" cy="74" r="9" fill="#ffe066" stroke="#1a1a2e" stroke-width="3"/>
+              <circle cx="32"  cy="74" r="7" fill="#ff5252" stroke="#1a1a2e" stroke-width="3"/>
+              <path d="M180 86 Q200 96 218 88" fill="none" stroke="#1a1a2e" stroke-width="3" stroke-linecap="round"/>
+              <circle cx="68"  cy="100" r="14" fill="#1a1a2e"/>
+              <circle cx="68"  cy="100" r="6"  fill="#999"/>
+              <circle cx="172" cy="100" r="14" fill="#1a1a2e"/>
+              <circle cx="172" cy="100" r="6"  fill="#999"/>
+            </svg>
+          </div>
+        </div>
+      </section>
+
+      <!-- ページ3: やまみち -->
+      <section class="page" data-scene="yamamichi">
+        <div class="narration">__NAME__くん、<br/>やま のぼるよ</div>
+        <div class="sky sky--mountain">
+          <div class="cloud cloud--a"></div>
+          <div class="cloud cloud--b"></div>
+          <div class="mountain mountain--big"></div>
+          <div class="mountain mountain--small"></div>
+          <div class="road road--curve"></div>
+          <div class="road-line"></div>
+          <div class="car car--curve" aria-hidden="true">
+            <svg viewBox="0 0 240 120" xmlns="http://www.w3.org/2000/svg">
+              <ellipse cx="120" cy="108" rx="100" ry="6" fill="rgba(0,0,0,0.15)"/>
+              <rect x="20" y="60" width="200" height="36" rx="14" fill="#42a5f5" stroke="#1a1a2e" stroke-width="4"/>
+              <path d="M55 60 Q70 28 110 28 L150 28 Q180 28 195 60 Z"
+                    fill="#ffffff" stroke="#1a1a2e" stroke-width="4" stroke-linejoin="round"/>
+              <path d="M64 56 Q78 36 110 36 L130 36 L130 56 Z" fill="#9bd2ff" stroke="#1a1a2e" stroke-width="3"/>
+              <path d="M134 36 L150 36 Q176 36 188 56 L134 56 Z" fill="#9bd2ff" stroke="#1a1a2e" stroke-width="3"/>
+              <circle cx="208" cy="74" r="9" fill="#ffe066" stroke="#1a1a2e" stroke-width="3"/>
+              <circle cx="32"  cy="74" r="7" fill="#ff5252" stroke="#1a1a2e" stroke-width="3"/>
+              <path d="M180 86 Q200 96 218 88" fill="none" stroke="#1a1a2e" stroke-width="3" stroke-linecap="round"/>
+              <circle cx="68"  cy="100" r="14" fill="#1a1a2e"/>
+              <circle cx="68"  cy="100" r="6"  fill="#999"/>
+              <circle cx="172" cy="100" r="14" fill="#1a1a2e"/>
+              <circle cx="172" cy="100" r="6"  fill="#999"/>
+            </svg>
+          </div>
+        </div>
+      </section>
+
+      <!-- ページ4: よる -->
+      <section class="page" data-scene="yoru">
+        <div class="narration narration--night">__NAME__くん、<br/>よるの ドライブ</div>
+        <div class="sky sky--night">
+          <div class="moon"></div>
+          <div class="star star--1"></div>
+          <div class="star star--2"></div>
+          <div class="star star--3"></div>
+          <div class="star star--4"></div>
+          <div class="star star--5"></div>
+          <div class="house house--1 house--night"></div>
+          <div class="house house--3 house--night"></div>
+          <div class="streetlamp streetlamp--1"></div>
+          <div class="streetlamp streetlamp--2"></div>
+          <div class="road"></div>
+          <div class="road-line"></div>
+          <div class="car car--run" aria-hidden="true">
+            <svg viewBox="0 0 240 120" xmlns="http://www.w3.org/2000/svg">
+              <ellipse cx="120" cy="108" rx="100" ry="6" fill="rgba(0,0,0,0.15)"/>
+              <rect x="20" y="60" width="200" height="36" rx="14" fill="#7e57c2" stroke="#1a1a2e" stroke-width="4"/>
+              <path d="M55 60 Q70 28 110 28 L150 28 Q180 28 195 60 Z"
+                    fill="#ffffff" stroke="#1a1a2e" stroke-width="4" stroke-linejoin="round"/>
+              <path d="M64 56 Q78 36 110 36 L130 36 L130 56 Z" fill="#ffe066" stroke="#1a1a2e" stroke-width="3"/>
+              <path d="M134 36 L150 36 Q176 36 188 56 L134 56 Z" fill="#ffe066" stroke="#1a1a2e" stroke-width="3"/>
+              <!-- ヘッドライトを光らせる -->
+              <circle cx="208" cy="74" r="11" fill="#fff8a0" stroke="#1a1a2e" stroke-width="3"/>
+              <path d="M218 74 L240 64 L240 84 Z" fill="rgba(255,248,160,.55)"/>
+              <circle cx="32" cy="74" r="7" fill="#ff5252" stroke="#1a1a2e" stroke-width="3"/>
+              <path d="M180 86 Q200 96 218 88" fill="none" stroke="#1a1a2e" stroke-width="3" stroke-linecap="round"/>
+              <circle cx="68"  cy="100" r="14" fill="#1a1a2e"/>
+              <circle cx="68"  cy="100" r="6"  fill="#999"/>
+              <circle cx="172" cy="100" r="14" fill="#1a1a2e"/>
+              <circle cx="172" cy="100" r="6"  fill="#999"/>
+            </svg>
+          </div>
+        </div>
+      </section>
+
+      <!-- ページ5: ゴール -->
+      <section class="page" data-scene="goal">
+        <div class="sky sky--sunset">
+          <div class="sun" style="background: radial-gradient(circle at 35% 35%, #ffe4b5, #ff8a5b); box-shadow: 0 0 80px rgba(255,138,91,.8);"></div>
+          <div class="cloud cloud--a"></div>
+          <div class="house house--3"></div>
+          <div class="house house--4"></div>
+          <div class="road"></div>
+          <div class="road-line"></div>
+          <div class="car car--stop" aria-hidden="true">
+            <svg viewBox="0 0 240 120" xmlns="http://www.w3.org/2000/svg">
+              <ellipse cx="120" cy="108" rx="100" ry="6" fill="rgba(0,0,0,0.15)"/>
+              <rect x="20" y="60" width="200" height="36" rx="14" fill="#ff6b9d" stroke="#1a1a2e" stroke-width="4"/>
+              <path d="M55 60 Q70 28 110 28 L150 28 Q180 28 195 60 Z"
+                    fill="#ffffff" stroke="#1a1a2e" stroke-width="4" stroke-linejoin="round"/>
+              <path d="M64 56 Q78 36 110 36 L130 36 L130 56 Z" fill="#9bd2ff" stroke="#1a1a2e" stroke-width="3"/>
+              <path d="M134 36 L150 36 Q176 36 188 56 L134 56 Z" fill="#9bd2ff" stroke="#1a1a2e" stroke-width="3"/>
+              <circle cx="208" cy="74" r="9" fill="#ffe066" stroke="#1a1a2e" stroke-width="3"/>
+              <circle cx="32"  cy="74" r="7" fill="#ff5252" stroke="#1a1a2e" stroke-width="3"/>
+              <path d="M180 86 Q200 96 218 88" fill="none" stroke="#1a1a2e" stroke-width="3" stroke-linecap="round"/>
+              <circle cx="68"  cy="100" r="14" fill="#1a1a2e"/>
+              <circle cx="68"  cy="100" r="6"  fill="#999"/>
+              <circle cx="172" cy="100" r="14" fill="#1a1a2e"/>
+              <circle cx="172" cy="100" r="6"  fill="#999"/>
+            </svg>
+          </div>
+        </div>
+        <div class="title-banner title-banner--end"><span>__NAME__くん、<br/>ついたー！</span></div>
+      </section>
+
+      <div id="fx-layer" aria-hidden="true"></div>
+
+      <div id="cam-window" class="cam-window cam-window--off" aria-label="みんなの かお">
+        <video id="cam-video" autoplay playsinline muted></video>
+        <button id="cam-toggle" class="cam-toggle" aria-label="__NAME__くんを タップ">
+          <span class="cam-toggle-icon" aria-hidden="true">
+            <svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+              <path d="M22 60 Q22 22 60 22 Q98 22 98 60 L98 50 Q82 36 60 36 Q38 36 22 50 Z"
+                    fill="#3a2418" stroke="#1a1a2e" stroke-width="3" stroke-linejoin="round"/>
+              <ellipse cx="60" cy="68" rx="38" ry="36" fill="#ffe0c2" stroke="#1a1a2e" stroke-width="3"/>
+              <circle cx="34" cy="78" r="7" fill="#ff8aa8" opacity="0.85"/>
+              <circle cx="86" cy="78" r="7" fill="#ff8aa8" opacity="0.85"/>
+              <path d="M42 68 Q47 62 52 68" fill="none" stroke="#1a1a2e" stroke-width="3.5" stroke-linecap="round"/>
+              <path d="M68 68 Q73 62 78 68" fill="none" stroke="#1a1a2e" stroke-width="3.5" stroke-linecap="round"/>
+              <path d="M52 86 Q60 94 68 86" fill="#ff6b9d" stroke="#1a1a2e" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+            </svg>
+          </span>
+          <span class="cam-toggle-label">__NAME__くんを<br/>タップ！</span>
+        </button>
+      </div>
+
+      <nav class="parent-nav" aria-label="ぺーじ そうさ">
+        <a class="home-btn" href="../" aria-label="ほんだなへ もどる">🏠</a>
+        <button class="nav-btn nav-btn--prev" aria-label="まえのページ">◀</button>
+        <div class="dots" id="dots"></div>
+        <button class="nav-btn nav-btn--next" aria-label="つぎのページ">▶</button>
+      </nav>
+    </main>
+
+    <script src="config.js"></script>
+    <script src="../shared/ehon.js"></script>
+  </body>
+</html>

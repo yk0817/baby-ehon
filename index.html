@@ -2,213 +2,99 @@
 <html lang="ja">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="theme-color" content="#9bd2ff" />
-    <title>__NAME__くんの ひこうき</title>
-    <link rel="stylesheet" href="styles.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#ffd166" />
+    <title>__NAME__くんの ほんだな</title>
+    <link rel="stylesheet" href="shelf.css" />
   </head>
   <body>
-    <main id="book" aria-label="ひこうきの えほん">
-      <!-- ページ1: りりく -->
-      <section class="page page--morning is-active" data-scene="takeoff" data-sfx="ぶ　ー　ん">
-        <div class="sky sky--morning">
-          <div class="sun" aria-hidden="true">
-            <div class="sun-core"></div>
-            <div class="sun-rays"></div>
-          </div>
-          <div class="cloud cloud--a" aria-hidden="true"></div>
-          <div class="cloud cloud--b" aria-hidden="true"></div>
-          <div class="cloud cloud--c" aria-hidden="true"></div>
-          <div class="ground">
-            <div class="runway"></div>
-            <div class="runway-line"></div>
-          </div>
-          <div class="plane plane--takeoff" aria-hidden="true">
-            <svg viewBox="0 0 240 120" xmlns="http://www.w3.org/2000/svg">
-              <defs>
-                <linearGradient id="bodyA" x1="0" x2="1">
-                  <stop offset="0" stop-color="#fff"/>
-                  <stop offset="1" stop-color="#ffe6f0"/>
-                </linearGradient>
-              </defs>
-              <ellipse cx="120" cy="62" rx="100" ry="22" fill="url(#bodyA)" stroke="#1a1a2e" stroke-width="4"/>
-              <path d="M70 56 L40 26 L60 26 L100 52 Z" fill="#ff6b9d" stroke="#1a1a2e" stroke-width="4" stroke-linejoin="round"/>
-              <path d="M70 68 L40 98 L60 98 L100 72 Z" fill="#ff6b9d" stroke="#1a1a2e" stroke-width="4" stroke-linejoin="round"/>
-              <path d="M190 56 L218 36 L218 56 Z" fill="#ffd166" stroke="#1a1a2e" stroke-width="4" stroke-linejoin="round"/>
-              <circle cx="170" cy="56" r="9" fill="#9bd2ff" stroke="#1a1a2e" stroke-width="3"/>
-              <circle cx="145" cy="56" r="7" fill="#9bd2ff" stroke="#1a1a2e" stroke-width="3"/>
-              <circle cx="120" cy="56" r="7" fill="#9bd2ff" stroke="#1a1a2e" stroke-width="3"/>
-              <circle cx="95"  cy="56" r="7" fill="#9bd2ff" stroke="#1a1a2e" stroke-width="3"/>
-            </svg>
-          </div>
-        </div>
-        <div class="title-banner">
-          <span>__NAME__くんの<br/>ひこうき</span>
-        </div>
-      </section>
+    <header class="shelf-header">
+      <h1 class="shelf-title">__NAME__くんの<br/>ほんだな</h1>
+      <p class="shelf-sub">よみたい えほんを えらんでね</p>
+    </header>
 
-      <!-- ページ2: 雲のなか -->
-      <section class="page page--clouds" data-scene="clouds" data-sfx="ひゅ　ー　ん">
-        <div class="narration">__NAME__くん、<br/>くもの なか だよ</div>
-        <div class="sky sky--clouds">
-          <div class="fluff fluff--1"></div>
-          <div class="fluff fluff--2"></div>
-          <div class="fluff fluff--3"></div>
-          <div class="fluff fluff--4"></div>
-          <div class="fluff fluff--5"></div>
-          <div class="plane plane--cruise" aria-hidden="true">
-            <svg viewBox="0 0 240 120" xmlns="http://www.w3.org/2000/svg">
-              <ellipse cx="120" cy="62" rx="100" ry="22" fill="#fff" stroke="#1a1a2e" stroke-width="4"/>
-              <path d="M70 56 L40 26 L60 26 L100 52 Z" fill="#ff6b9d" stroke="#1a1a2e" stroke-width="4" stroke-linejoin="round"/>
-              <path d="M70 68 L40 98 L60 98 L100 72 Z" fill="#ff6b9d" stroke="#1a1a2e" stroke-width="4" stroke-linejoin="round"/>
-              <path d="M190 56 L218 36 L218 56 Z" fill="#ffd166" stroke="#1a1a2e" stroke-width="4" stroke-linejoin="round"/>
-              <circle cx="170" cy="56" r="9" fill="#9bd2ff" stroke="#1a1a2e" stroke-width="3"/>
-              <circle cx="145" cy="56" r="7" fill="#9bd2ff" stroke="#1a1a2e" stroke-width="3"/>
-              <circle cx="120" cy="56" r="7" fill="#9bd2ff" stroke="#1a1a2e" stroke-width="3"/>
-              <circle cx="95"  cy="56" r="7" fill="#9bd2ff" stroke="#1a1a2e" stroke-width="3"/>
-            </svg>
-            <div class="trail"></div>
-          </div>
+    <main class="shelf-grid">
+
+      <a class="book-card" href="hikouki/">
+        <div class="book-cover book-cover--sky">
+          <svg viewBox="0 0 240 120" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <ellipse cx="120" cy="62" rx="100" ry="22" fill="#fff" stroke="#1a1a2e" stroke-width="4"/>
+            <path d="M70 56 L40 26 L60 26 L100 52 Z" fill="#ff6b9d" stroke="#1a1a2e" stroke-width="4" stroke-linejoin="round"/>
+            <path d="M70 68 L40 98 L60 98 L100 72 Z" fill="#ff6b9d" stroke="#1a1a2e" stroke-width="4" stroke-linejoin="round"/>
+            <path d="M190 56 L218 36 L218 56 Z" fill="#ffd166" stroke="#1a1a2e" stroke-width="4" stroke-linejoin="round"/>
+            <circle cx="170" cy="56" r="9" fill="#9bd2ff" stroke="#1a1a2e" stroke-width="3"/>
+            <circle cx="145" cy="56" r="7" fill="#9bd2ff" stroke="#1a1a2e" stroke-width="3"/>
+            <circle cx="120" cy="56" r="7" fill="#9bd2ff" stroke="#1a1a2e" stroke-width="3"/>
+            <circle cx="95"  cy="56" r="7" fill="#9bd2ff" stroke="#1a1a2e" stroke-width="3"/>
+          </svg>
         </div>
-      </section>
-
-      <!-- ページ3: うみのうえ -->
-      <section class="page page--sea" data-scene="sea" data-sfx="ぴょ　ー　ん">
-        <div class="narration">__NAME__くん、<br/>うみ みえる？</div>
-        <div class="sky sky--sea">
-          <div class="cloud cloud--a"></div>
-          <div class="cloud cloud--b"></div>
-          <div class="sea">
-            <div class="wave wave--1"></div>
-            <div class="wave wave--2"></div>
-            <div class="wave wave--3"></div>
-            <div class="dolphin dolphin--1" aria-hidden="true">
-              <svg viewBox="0 0 120 80" xmlns="http://www.w3.org/2000/svg">
-                <path d="M10 50 Q40 10 70 30 Q95 40 110 30 L100 55 Q70 75 40 65 Q15 60 10 50 Z" fill="#5dade2" stroke="#1a1a2e" stroke-width="3" stroke-linejoin="round"/>
-                <circle cx="90" cy="38" r="3" fill="#1a1a2e"/>
-              </svg>
-            </div>
-            <div class="dolphin dolphin--2" aria-hidden="true">
-              <svg viewBox="0 0 120 80" xmlns="http://www.w3.org/2000/svg">
-                <path d="M10 50 Q40 10 70 30 Q95 40 110 30 L100 55 Q70 75 40 65 Q15 60 10 50 Z" fill="#48c9b0" stroke="#1a1a2e" stroke-width="3" stroke-linejoin="round"/>
-                <circle cx="90" cy="38" r="3" fill="#1a1a2e"/>
-              </svg>
-            </div>
-          </div>
-          <div class="plane plane--cruise" aria-hidden="true">
-            <svg viewBox="0 0 240 120" xmlns="http://www.w3.org/2000/svg">
-              <ellipse cx="120" cy="62" rx="100" ry="22" fill="#fff" stroke="#1a1a2e" stroke-width="4"/>
-              <path d="M70 56 L40 26 L60 26 L100 52 Z" fill="#ff6b9d" stroke="#1a1a2e" stroke-width="4" stroke-linejoin="round"/>
-              <path d="M70 68 L40 98 L60 98 L100 72 Z" fill="#ff6b9d" stroke="#1a1a2e" stroke-width="4" stroke-linejoin="round"/>
-              <path d="M190 56 L218 36 L218 56 Z" fill="#ffd166" stroke="#1a1a2e" stroke-width="4" stroke-linejoin="round"/>
-              <circle cx="170" cy="56" r="9" fill="#9bd2ff" stroke="#1a1a2e" stroke-width="3"/>
-              <circle cx="145" cy="56" r="7" fill="#9bd2ff" stroke="#1a1a2e" stroke-width="3"/>
-              <circle cx="120" cy="56" r="7" fill="#9bd2ff" stroke="#1a1a2e" stroke-width="3"/>
-              <circle cx="95"  cy="56" r="7" fill="#9bd2ff" stroke="#1a1a2e" stroke-width="3"/>
-            </svg>
-          </div>
+        <div class="book-label">
+          <div class="book-name">ひこうき</div>
+          <div class="book-desc">そらを とぶよ</div>
         </div>
-      </section>
+      </a>
 
-      <!-- ページ4: 夜空 -->
-      <section class="page page--night" data-scene="night" data-sfx="きら　きら">
-        <div class="narration narration--night">__NAME__くん、<br/>おほしさま！</div>
-        <div class="sky sky--night">
-          <div class="moon" aria-hidden="true"></div>
-          <div class="star star--1"></div>
-          <div class="star star--2"></div>
-          <div class="star star--3"></div>
-          <div class="star star--4"></div>
-          <div class="star star--5"></div>
-          <div class="star star--6"></div>
-          <div class="star star--7"></div>
-          <div class="plane plane--cruise" aria-hidden="true">
-            <svg viewBox="0 0 240 120" xmlns="http://www.w3.org/2000/svg">
-              <ellipse cx="120" cy="62" rx="100" ry="22" fill="#fff" stroke="#1a1a2e" stroke-width="4"/>
-              <path d="M70 56 L40 26 L60 26 L100 52 Z" fill="#ff6b9d" stroke="#1a1a2e" stroke-width="4" stroke-linejoin="round"/>
-              <path d="M70 68 L40 98 L60 98 L100 72 Z" fill="#ff6b9d" stroke="#1a1a2e" stroke-width="4" stroke-linejoin="round"/>
-              <path d="M190 56 L218 36 L218 56 Z" fill="#ffd166" stroke="#1a1a2e" stroke-width="4" stroke-linejoin="round"/>
-              <circle cx="170" cy="56" r="9" fill="#ffe066" stroke="#1a1a2e" stroke-width="3"/>
-              <circle cx="145" cy="56" r="7" fill="#ffe066" stroke="#1a1a2e" stroke-width="3"/>
-              <circle cx="120" cy="56" r="7" fill="#ffe066" stroke="#1a1a2e" stroke-width="3"/>
-              <circle cx="95"  cy="56" r="7" fill="#ffe066" stroke="#1a1a2e" stroke-width="3"/>
-            </svg>
-          </div>
+      <a class="book-card" href="densha/">
+        <div class="book-cover book-cover--rail">
+          <svg viewBox="0 0 480 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <rect x="6" y="30" width="120" height="56" rx="8" fill="#ffffff" stroke="#1a1a2e" stroke-width="4"/>
+            <rect x="6" y="46" width="120" height="14" fill="#ff6b9d"/>
+            <rect x="24" y="40" width="18" height="14" fill="#9bd2ff" stroke="#1a1a2e" stroke-width="2"/>
+            <rect x="54" y="40" width="18" height="14" fill="#9bd2ff" stroke="#1a1a2e" stroke-width="2"/>
+            <rect x="84" y="40" width="18" height="14" fill="#9bd2ff" stroke="#1a1a2e" stroke-width="2"/>
+            <rect x="138" y="30" width="120" height="56" rx="8" fill="#ffffff" stroke="#1a1a2e" stroke-width="4"/>
+            <rect x="138" y="46" width="120" height="14" fill="#ff6b9d"/>
+            <rect x="156" y="40" width="18" height="14" fill="#9bd2ff" stroke="#1a1a2e" stroke-width="2"/>
+            <rect x="186" y="40" width="18" height="14" fill="#9bd2ff" stroke="#1a1a2e" stroke-width="2"/>
+            <rect x="216" y="40" width="18" height="14" fill="#9bd2ff" stroke="#1a1a2e" stroke-width="2"/>
+            <path d="M270 30 L400 30 Q450 30 470 60 Q450 86 400 86 L270 86 Z" fill="#ffffff" stroke="#1a1a2e" stroke-width="4" stroke-linejoin="round"/>
+            <rect x="270" y="46" width="180" height="14" fill="#ff6b9d"/>
+            <rect x="286" y="40" width="18" height="14" fill="#9bd2ff" stroke="#1a1a2e" stroke-width="2"/>
+            <rect x="316" y="40" width="18" height="14" fill="#9bd2ff" stroke="#1a1a2e" stroke-width="2"/>
+            <ellipse cx="430" cy="56" rx="14" ry="10" fill="#ffe066" stroke="#1a1a2e" stroke-width="3"/>
+            <ellipse cx="427" cy="56" rx="4" ry="4" fill="#1a1a2e"/>
+            <path d="M380 70 Q400 78 430 76" fill="none" stroke="#1a1a2e" stroke-width="3" stroke-linecap="round"/>
+            <circle cx="60" cy="92" r="9" fill="#1a1a2e"/>
+            <circle cx="100" cy="92" r="9" fill="#1a1a2e"/>
+            <circle cx="200" cy="92" r="9" fill="#1a1a2e"/>
+            <circle cx="240" cy="92" r="9" fill="#1a1a2e"/>
+            <circle cx="330" cy="92" r="9" fill="#1a1a2e"/>
+            <circle cx="380" cy="92" r="9" fill="#1a1a2e"/>
+          </svg>
         </div>
-      </section>
-
-      <!-- ページ5: ちゃくりく -->
-      <section class="page page--landing" data-scene="landing" data-sfx="ガタ　ガタ">
-        <div class="sky sky--sunset">
-          <div class="sun sun--set" aria-hidden="true">
-            <div class="sun-core"></div>
-          </div>
-          <div class="cloud cloud--a"></div>
-          <div class="cloud cloud--b"></div>
-          <div class="ground">
-            <div class="runway"></div>
-            <div class="runway-line"></div>
-            <div class="tower" aria-hidden="true"></div>
-          </div>
-          <div class="plane plane--landing" aria-hidden="true">
-            <svg viewBox="0 0 240 120" xmlns="http://www.w3.org/2000/svg">
-              <ellipse cx="120" cy="62" rx="100" ry="22" fill="#fff" stroke="#1a1a2e" stroke-width="4"/>
-              <path d="M70 56 L40 26 L60 26 L100 52 Z" fill="#ff6b9d" stroke="#1a1a2e" stroke-width="4" stroke-linejoin="round"/>
-              <path d="M70 68 L40 98 L60 98 L100 72 Z" fill="#ff6b9d" stroke="#1a1a2e" stroke-width="4" stroke-linejoin="round"/>
-              <path d="M190 56 L218 36 L218 56 Z" fill="#ffd166" stroke="#1a1a2e" stroke-width="4" stroke-linejoin="round"/>
-              <circle cx="170" cy="56" r="9" fill="#9bd2ff" stroke="#1a1a2e" stroke-width="3"/>
-              <circle cx="145" cy="56" r="7" fill="#9bd2ff" stroke="#1a1a2e" stroke-width="3"/>
-              <circle cx="120" cy="56" r="7" fill="#9bd2ff" stroke="#1a1a2e" stroke-width="3"/>
-              <circle cx="95"  cy="56" r="7" fill="#9bd2ff" stroke="#1a1a2e" stroke-width="3"/>
-              <rect x="90" y="84" width="6" height="14" fill="#1a1a2e"/>
-              <rect x="144" y="84" width="6" height="14" fill="#1a1a2e"/>
-              <circle cx="93" cy="100" r="6" fill="#1a1a2e"/>
-              <circle cx="147" cy="100" r="6" fill="#1a1a2e"/>
-            </svg>
-          </div>
+        <div class="book-label">
+          <div class="book-name">でんしゃ</div>
+          <div class="book-desc">ガタンゴトン はしるよ</div>
         </div>
-        <div class="title-banner title-banner--end">
-          <span>__NAME__くん、<br/>ついたー！</span>
+      </a>
+
+      <a class="book-card" href="kuruma/">
+        <div class="book-cover book-cover--road">
+          <svg viewBox="0 0 240 120" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <ellipse cx="120" cy="108" rx="100" ry="6" fill="rgba(0,0,0,0.15)"/>
+            <rect x="20" y="60" width="200" height="36" rx="14" fill="#ff6b9d" stroke="#1a1a2e" stroke-width="4"/>
+            <path d="M55 60 Q70 28 110 28 L150 28 Q180 28 195 60 Z" fill="#ffffff" stroke="#1a1a2e" stroke-width="4" stroke-linejoin="round"/>
+            <path d="M64 56 Q78 36 110 36 L130 36 L130 56 Z" fill="#9bd2ff" stroke="#1a1a2e" stroke-width="3"/>
+            <path d="M134 36 L150 36 Q176 36 188 56 L134 56 Z" fill="#9bd2ff" stroke="#1a1a2e" stroke-width="3"/>
+            <circle cx="208" cy="74" r="9" fill="#ffe066" stroke="#1a1a2e" stroke-width="3"/>
+            <circle cx="32"  cy="74" r="7" fill="#ff5252" stroke="#1a1a2e" stroke-width="3"/>
+            <path d="M180 86 Q200 96 218 88" fill="none" stroke="#1a1a2e" stroke-width="3" stroke-linecap="round"/>
+            <circle cx="68"  cy="100" r="14" fill="#1a1a2e"/>
+            <circle cx="68"  cy="100" r="6"  fill="#999"/>
+            <circle cx="172" cy="100" r="14" fill="#1a1a2e"/>
+            <circle cx="172" cy="100" r="6"  fill="#999"/>
+          </svg>
         </div>
-      </section>
+        <div class="book-label">
+          <div class="book-name">くるま</div>
+          <div class="book-desc">ぶーんと はしるよ</div>
+        </div>
+      </a>
 
-      <!-- タップ用の演出レイヤー -->
-      <div id="fx-layer" aria-hidden="true"></div>
-
-      <!-- カメラ ミラー（みんなの顔） -->
-      <div id="cam-window" class="cam-window cam-window--off" aria-label="みんなの かお">
-        <video id="cam-video" autoplay playsinline muted></video>
-        <button id="cam-toggle" class="cam-toggle" aria-label="__NAME__くんを タップ">
-          <span class="cam-toggle-icon" aria-hidden="true">
-            <svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
-              <!-- かみのけ -->
-              <path d="M22 60 Q22 22 60 22 Q98 22 98 60 L98 50 Q82 36 60 36 Q38 36 22 50 Z"
-                    fill="#3a2418" stroke="#1a1a2e" stroke-width="3" stroke-linejoin="round"/>
-              <!-- かお -->
-              <ellipse cx="60" cy="68" rx="38" ry="36" fill="#ffe0c2" stroke="#1a1a2e" stroke-width="3"/>
-              <!-- ほっぺ -->
-              <circle cx="34" cy="78" r="7" fill="#ff8aa8" opacity="0.85"/>
-              <circle cx="86" cy="78" r="7" fill="#ff8aa8" opacity="0.85"/>
-              <!-- め（にっこり） -->
-              <path d="M42 68 Q47 62 52 68" fill="none" stroke="#1a1a2e" stroke-width="3.5" stroke-linecap="round"/>
-              <path d="M68 68 Q73 62 78 68" fill="none" stroke="#1a1a2e" stroke-width="3.5" stroke-linecap="round"/>
-              <!-- くち -->
-              <path d="M52 86 Q60 94 68 86" fill="#ff6b9d" stroke="#1a1a2e" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
-            </svg>
-          </span>
-          <span class="cam-toggle-label">__NAME__くんを<br/>タップ！</span>
-        </button>
-      </div>
-
-      <!-- 大人用のナビ -->
-      <nav class="parent-nav" aria-label="ぺーじ そうさ">
-        <button class="nav-btn nav-btn--prev" aria-label="まえのページ">◀</button>
-        <div class="dots" id="dots"></div>
-        <button class="nav-btn nav-btn--next" aria-label="つぎのページ">▶</button>
-      </nav>
     </main>
 
-    <script src="main.js"></script>
+    <footer class="shelf-footer">
+      © __NAME__くんの ほんだな
+    </footer>
   </body>
 </html>
