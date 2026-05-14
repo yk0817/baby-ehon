@@ -70,6 +70,7 @@
     setTimeout(() => emitSfxAt(window.innerWidth / 2, window.innerHeight / 2.4), 300);
     setTimeout(() => emitTalk(), 700);
     popCam();
+    resetDraggables();
   }
 
   function restartTimers() {
@@ -197,10 +198,99 @@
   function onTap(e) {
     if (e.target.closest('.parent-nav')) return;
     if (e.target.closest('.cam-window')) return;
+    // .draggable は別ハンドラで処理（タップだけ SFX、ドラッグは無音）
+    if (e.target.closest('.draggable')) return;
     const touch = e.changedTouches ? e.changedTouches[0] : e;
     emitSfxAt(touch.clientX, touch.clientY);
   }
   document.addEventListener('pointerdown', onTap);
+
+  // ─── ドラッグ可能な乗り物 (.draggable) ────────────────
+  function setupDraggable(el) {
+    let pointerId = null;
+    let startX = 0;
+    let startY = 0;
+    let movedYet = false;
+
+    el.addEventListener('pointerdown', (e) => {
+      if (pointerId !== null) return;
+      pointerId = e.pointerId;
+      startX = e.clientX;
+      startY = e.clientY;
+      movedYet = false;
+      try { el.setPointerCapture(pointerId); } catch (_) {}
+    });
+
+    el.addEventListener('pointermove', (e) => {
+      if (e.pointerId !== pointerId) return;
+      const dx = e.clientX - startX;
+      if (!movedYet) {
+        if (Math.abs(dx) < 4) return;
+        movedYet = true;
+        // 今アニメで描画されている位置で固定する
+        const rect = el.getBoundingClientRect();
+        const parent = el.offsetParent || el.parentElement;
+        const parentRect = parent.getBoundingClientRect();
+        const liveLeft = rect.left - parentRect.left;
+        el.style.animation = 'none';
+        el.style.left = liveLeft + 'px';
+        el.style.transform = 'translateX(0px)';
+        el.classList.add('is-dragging');
+      }
+      el.style.transform = `translateX(${dx}px)`;
+    });
+
+    function end(e) {
+      if (e.pointerId !== pointerId) return;
+      try { el.releasePointerCapture(pointerId); } catch (_) {}
+      pointerId = null;
+      el.classList.remove('is-dragging');
+      if (movedYet) {
+        // 移動した分を left に畳む
+        const baseLeft = parseFloat(el.style.left) || 0;
+        const m = /translateX\((-?[\d.]+)px\)/.exec(el.style.transform || '');
+        const dx = m ? parseFloat(m[1]) : 0;
+        const finalLeft = baseLeft + dx;
+        el.style.left = finalLeft + 'px';
+        el.style.transform = 'translateX(0px)';
+
+        // 離した位置から右へ流れて画面外へ → CSSアニメ復帰
+        const rect = el.getBoundingClientRect();
+        const screenWidth = window.innerWidth;
+        const distance = Math.max(screenWidth + 200 - rect.left, 200);
+        // 1画面分を10秒で渡る速度（ゆっくりめ、CSSアニメ近似）
+        const duration = Math.max(1500, (distance / (screenWidth / 10)) * 1000);
+
+        const anim = el.animate(
+          [
+            { transform: 'translateX(0px)' },
+            { transform: `translateX(${distance}px)` },
+          ],
+          { duration, easing: 'linear', fill: 'none' }
+        );
+        anim.onfinish = () => {
+          // インライン解除 → CSS アニメ再開（左から再登場）
+          el.style.animation = '';
+          el.style.left = '';
+          el.style.transform = '';
+        };
+      }
+      // タップだけ（動かさず離した）は何もしない
+    }
+    el.addEventListener('pointerup', end);
+    el.addEventListener('pointercancel', end);
+  }
+
+  document.querySelectorAll('.draggable').forEach(setupDraggable);
+
+  // ページ切替時に、ドラッグで動かされた乗り物を元のCSSアニメに戻す
+  function resetDraggables() {
+    document.querySelectorAll('.draggable').forEach((el) => {
+      el.style.animation = '';
+      el.style.left = '';
+      el.style.transform = '';
+    });
+  }
 
   // ─── Nav + keyboard ───────────────────────────────────
   prevBtn.addEventListener('click', (e) => { e.stopPropagation(); goTo(current - 1); });
