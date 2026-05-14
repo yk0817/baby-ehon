@@ -178,7 +178,7 @@
 .plane--takeoff {
   bottom: 24%;
   left: -40%;
-  animation: takeoff 7s var(--ease-out-expo) infinite;
+  animation: takeoff 14s var(--ease-out-expo) infinite;
 }
 @keyframes takeoff {
   0%   { transform: translate(0, 0) rotate(0deg); }
@@ -189,7 +189,7 @@
 .plane--cruise {
   top: 38%;
   left: -40%;
-  animation: cruise 9s linear infinite, bob 2.4s ease-in-out infinite;
+  animation: cruise 18s linear infinite, bob 3.6s ease-in-out infinite;
 }
 @keyframes cruise {
   from { transform: translateX(0); }
@@ -202,7 +202,7 @@
 .plane--landing {
   top: -10%;
   left: -40%;
-  animation: landing 8s var(--ease-in-out-soft) infinite;
+  animation: landing 16s var(--ease-in-out-soft) infinite;
 }
 @keyframes landing {
   0%   { transform: translate(0, 0) rotate(0deg); }

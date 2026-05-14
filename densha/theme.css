@@ -245,20 +245,20 @@
 }
 .train svg { width: 100%; height: auto; display: block; }
 .train--run {
-  animation: trainRun 6s linear infinite;
+  animation: trainRun 12s linear infinite;
 }
 .train--stop {
-  animation: trainStop 8s var(--ease-in-out-soft) infinite;
+  animation: trainStop 16s var(--ease-in-out-soft) infinite;
 }
 .train--cross {
   bottom: 38%;
-  animation: trainRun 5s linear infinite;
+  animation: trainRun 11s linear infinite;
 }
 .train--night {
-  animation: trainRun 7s linear infinite;
+  animation: trainRun 14s linear infinite;
 }
 .train--arrive {
-  animation: trainArrive 8s var(--ease-in-out-soft) infinite;
+  animation: trainArrive 16s var(--ease-in-out-soft) infinite;
 }
 @keyframes trainRun {
   from { transform: translateX(0); }
