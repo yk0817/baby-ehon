@@ -161,6 +161,249 @@
   left: 15%; right: 15%;
 }
 
+/* ─── 目黒区東山の街並み ─────────────────────────────── */
+/* 中層マンション（ベージュ + 窓グリッド） */
+.apartment {
+  position: absolute;
+  bottom: 28%;
+  background: #f5e8c8;
+  border: 4px solid var(--ink);
+  border-bottom: none;
+  z-index: 1;
+}
+.apartment::before {
+  content: '';
+  position: absolute;
+  left: 0; right: 0; top: 0;
+  height: 8%;
+  background: #c4a47e;
+  border-bottom: 4px solid var(--ink);
+}
+.apartment::after {
+  content: '';
+  position: absolute;
+  inset: 12% 10% 6% 10%;
+  background:
+    repeating-linear-gradient(to right,
+      rgba(0,0,0,0) 0 8%,
+      #9ec5ea 8% 22%,
+      rgba(0,0,0,.7) 22% 24%,
+      rgba(0,0,0,0) 24% 30%),
+    repeating-linear-gradient(to bottom,
+      rgba(0,0,0,0) 0 10%,
+      rgba(0,0,0,0) 10% 30%,
+      rgba(0,0,0,.5) 30% 32%);
+  background-blend-mode: multiply;
+}
+.apartment--1 { left: 2%;  width: 16vmin; height: 38vmin; }
+.apartment--2 { left: 56%; width: 14vmin; height: 32vmin; background: #e8d3a8; }
+
+/* 一戸建て（瓦屋根の家） */
+.house-jp {
+  position: absolute;
+  bottom: 28%;
+  width: 18vmin; height: 18vmin;
+  z-index: 1;
+}
+.house-jp::before {
+  content: '';
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: 55%;
+  background: #fff8e1;
+  border: 4px solid var(--ink);
+}
+.house-jp::after {
+  content: '';
+  position: absolute;
+  left: -10%; right: -10%; top: 0;
+  height: 50%;
+  background: #6d4c2f;
+  border: 4px solid var(--ink);
+  clip-path: polygon(0 100%, 50% 0, 100% 100%);
+}
+.house-jp--1 { left: 22%; }
+.house-jp--2 { left: 76%; transform: scale(.85); }
+
+/* モダンな白い家 */
+.house-modern {
+  position: absolute;
+  bottom: 28%;
+  width: 16vmin; height: 22vmin;
+  background: #ffffff;
+  border: 4px solid var(--ink);
+  z-index: 1;
+}
+.house-modern::before {
+  content: '';
+  position: absolute;
+  inset: 18% 22% 50% 22%;
+  background: #9ec5ea;
+  border: 3px solid var(--ink);
+}
+.house-modern::after {
+  content: '';
+  position: absolute;
+  bottom: 6%; left: 36%;
+  width: 28%; height: 30%;
+  background: #1a1a2e;
+}
+.house-modern--1 { left: 40%; }
+
+/* 桜の木 */
+.sakura {
+  position: absolute;
+  bottom: 28%;
+  width: 22vmin; height: 26vmin;
+  z-index: 2;
+  pointer-events: none;
+}
+.sakura::before {
+  /* 幹 */
+  content: '';
+  position: absolute;
+  left: 45%; bottom: 0;
+  width: 10%; height: 35%;
+  background: #6d4c2f;
+  border: 3px solid var(--ink);
+  border-radius: 2px 2px 0 0;
+}
+.sakura::after {
+  /* 桜の冠 */
+  content: '';
+  position: absolute;
+  left: 0; right: 0; top: 0;
+  height: 75%;
+  background:
+    radial-gradient(circle at 30% 30%, #ffd0e0 0 18%, transparent 19%),
+    radial-gradient(circle at 70% 25%, #ffd0e0 0 20%, transparent 21%),
+    radial-gradient(circle at 50% 50%, #ffb3c8 0 24%, transparent 25%),
+    radial-gradient(circle at 20% 70%, #ffb3c8 0 18%, transparent 19%),
+    radial-gradient(circle at 80% 70%, #ffb3c8 0 18%, transparent 19%),
+    radial-gradient(circle at 50% 80%, #ffd0e0 0 16%, transparent 17%);
+  filter: drop-shadow(0 4px 0 var(--ink));
+}
+.sakura--1 { left: 12%; }
+.sakura--2 { left: 42%; transform: scale(.85); }
+.sakura--3 { left: 70%; }
+.sakura--4 { left: 88%; transform: scale(.75); }
+
+/* 桜の花びら（落ちる） */
+.petal {
+  position: absolute;
+  top: -5%;
+  width: 1.2vmin; height: 1.2vmin;
+  background: #ffb3c8;
+  border-radius: 50% 0 50% 50%;
+  animation: petalFall 8s linear infinite;
+}
+.petal--1 { left: 18%; animation-delay:  0s;    background: #ffd0e0; }
+.petal--2 { left: 32%; animation-delay: -1.5s; }
+.petal--3 { left: 48%; animation-delay: -3s;   background: #ffd0e0; }
+.petal--4 { left: 64%; animation-delay: -4.5s; }
+.petal--5 { left: 78%; animation-delay: -6s;   background: #ffd0e0; }
+.petal--6 { left: 90%; animation-delay: -2s; }
+@keyframes petalFall {
+  0%   { transform: translate(0, 0) rotate(0deg); opacity: 0; }
+  10%  { opacity: 1; }
+  90%  { opacity: 1; }
+  100% { transform: translate(-4vw, 60vh) rotate(360deg); opacity: 0; }
+}
+
+/* 電柱 + 電線 */
+.pole {
+  position: absolute;
+  bottom: 28%;
+  width: 1vmin; height: 28vmin;
+  background: linear-gradient(to bottom, #b0a89a, #7d756a);
+  border: 2px solid var(--ink);
+  z-index: 3;
+}
+.pole::before {
+  content: '';
+  position: absolute;
+  left: -3vmin; top: 15%;
+  width: 7vmin; height: 0.6vmin;
+  background: #7d756a;
+  border: 2px solid var(--ink);
+}
+.pole::after {
+  content: '';
+  position: absolute;
+  left: -3vmin; top: 30%;
+  width: 7vmin; height: 0.6vmin;
+  background: #7d756a;
+  border: 2px solid var(--ink);
+}
+.pole--1 { left: 32%; }
+.pole--2 { left: 72%; }
+.wire {
+  position: absolute;
+  left: 32%; right: 28%;
+  bottom: 50%;
+  height: 4px;
+  background: var(--ink);
+  z-index: 3;
+}
+.wire--low { bottom: 47%; opacity: .9; }
+
+/* 自販機 */
+.vending {
+  position: absolute;
+  bottom: 28%;
+  width: 4vmin; height: 8vmin;
+  background: #ff6b9d;
+  border: 3px solid var(--ink);
+  z-index: 2;
+}
+.vending::before {
+  content: '';
+  position: absolute;
+  inset: 12% 12% 35% 12%;
+  background: #fff;
+  border: 2px solid var(--ink);
+}
+.vending::after {
+  content: '';
+  position: absolute;
+  left: 25%; right: 25%; bottom: 12%;
+  height: 18%;
+  background: #ffd166;
+  border: 2px solid var(--ink);
+}
+.vending--1 { left: 50%; }
+
+/* 東山の道路（住宅街っぽい一車線、白い縁石） */
+.road--higashiyama {
+  height: 26%;
+  background: linear-gradient(to bottom, #5a5a65 0 100%);
+  border-top: 4px solid var(--ink);
+  border-bottom: none;
+}
+.road--higashiyama::before {
+  /* 歩道（白っぽい縁石） */
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 14%;
+  background: #cdc7bd;
+  border-bottom: 3px solid var(--ink);
+}
+.road--higashiyama::after {
+  /* もう片方の縁石（手前） */
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 10%;
+  background: #cdc7bd;
+  border-top: 3px solid var(--ink);
+}
+.road-line--higashiyama {
+  bottom: 14%;
+  background: repeating-linear-gradient(to right, #ffffff 0 40px, transparent 40px 80px);
+  height: 4px;
+}
+
 /* ─── おうち ──────────────────────────────────────────── */
 .house {
   position: absolute;
@@ -225,6 +468,18 @@
   z-index: 3;
 }
 .car svg { width: 100%; height: auto; display: block; }
+.car.draggable {
+  cursor: grab;
+  touch-action: none;
+}
+/* SVG の透明な隙間でもドラッグできるよう、車のbboxを丸ごとヒットさせる */
+.car.draggable svg {
+  pointer-events: all;
+}
+.car.draggable.is-dragging {
+  cursor: grabbing;
+  filter: drop-shadow(0 14px 0 rgba(0,0,0,0.25)) brightness(1.05);
+}
 .car--run {
   animation: carRun 12s linear infinite, carBob 0.7s ease-in-out infinite;
 }
