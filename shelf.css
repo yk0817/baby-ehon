@@ -97,6 +97,8 @@ html, body {
 .book-cover--sky    { background: linear-gradient(to bottom, #9bd2ff 0%, #d6efff 60%, #fff7e0 100%); }
 .book-cover--rail   { background: linear-gradient(to bottom, #b3e5fc 0%, #e1f5fe 60%, #c5e1a5 100%); }
 .book-cover--road   { background: linear-gradient(to bottom, #cfe8fc 0%, #f0f8ff 60%, #8bc34a 100%); }
+.book-cover--weather { background: linear-gradient(to bottom, #9bd2ff 0%, #ffd1dc 60%, #c8f0c8 100%); }
+.book-cover--night  { background: linear-gradient(to bottom, #0c0c2e 0%, #2a1a5e 60%, #4a2a6e 100%); }
 
 .book-label {
   padding: 18px 20px;
