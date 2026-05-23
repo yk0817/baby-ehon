@@ -1,0 +1,15 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node -e \"let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>{try{const i=JSON.parse(d);const p=i.tool_input&&i.tool_input.file_path||'';if(!p)return process.exit(0);if(!/\\.(html|css|js)$/i.test(p))return process.exit(0);if(/readme\\.md$/i.test(p))return process.exit(0);if(/\\.claude\\//i.test(p))return process.exit(0);const path=require('path');const rel=path.relative(process.cwd(),p);console.error('[baby-ehon hook] '+rel+' を編集しました。README.md の「ラインナップ」「機能」「構成」セクションに反映漏れがないか必ず確認してください。新しいブック追加なら本棚 index.html とラインナップ表の両方を更新する必要があります。');process.exit(2)}catch(e){process.exit(0)}})\""
+          }
+        ]
+      }
+    ]
+  }
+}
