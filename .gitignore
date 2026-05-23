@@ -3,3 +3,6 @@
 .vscode/
 node_modules/
 *.log
+
+# 個人設定（公開リポジトリに個人名を含めない）
+shared/baby.js

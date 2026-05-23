@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="theme-color" content="#9bd2ff" />
-    <title>__NAME__くんの おてんき</title>
+    <title>__NAME__の おてんき</title>
     <link rel="stylesheet" href="../shared/ehon.css" />
     <link rel="stylesheet" href="theme.css" />
   </head>
@@ -24,13 +24,13 @@
           <div class="hill"></div>
         </div>
         <div class="title-banner">
-          <span>__NAME__くんの<br/>おてんき</span>
+          <span>__NAME__の<br/>おてんき</span>
         </div>
       </section>
 
       <!-- ページ2: くもり -->
       <section class="page page--cloudy" data-scene="cloudy">
-        <div class="narration">__NAME__くん、<br/>くもさん いっぱい</div>
+        <div class="narration">__NAME__、<br/>くもさん いっぱい</div>
         <div class="sky sky--cloudy">
           <div class="cloud cloud--c1" aria-hidden="true"></div>
           <div class="cloud cloud--c2" aria-hidden="true"></div>
@@ -42,7 +42,7 @@
 
       <!-- ページ3: あめ -->
       <section class="page page--rainy" data-scene="rainy">
-        <div class="narration">__NAME__くん、<br/>あめ ふってきた！</div>
+        <div class="narration">__NAME__、<br/>あめ ふってきた！</div>
         <div class="sky sky--rainy">
           <div class="cloud cloud--dark cloud--r1" aria-hidden="true"></div>
           <div class="cloud cloud--dark cloud--r2" aria-hidden="true"></div>
@@ -75,7 +75,7 @@
 
       <!-- ページ4: かみなり -->
       <section class="page page--thunder" data-scene="thunder">
-        <div class="narration narration--night">__NAME__くん、<br/>ピカッ ゴロゴロ！</div>
+        <div class="narration narration--night">__NAME__、<br/>ピカッ ゴロゴロ！</div>
         <div class="sky sky--thunder">
           <div class="cloud cloud--dark cloud--t1" aria-hidden="true"></div>
           <div class="cloud cloud--dark cloud--t2" aria-hidden="true"></div>
@@ -115,7 +115,7 @@
           <div class="hill hill--green"></div>
         </div>
         <div class="title-banner title-banner--end">
-          <span>__NAME__くん、<br/>にじ きれい！</span>
+          <span>__NAME__、<br/>にじ きれい！</span>
         </div>
       </section>
 
@@ -123,7 +123,7 @@
 
       <div id="cam-window" class="cam-window cam-window--off" aria-label="みんなの かお">
         <video id="cam-video" autoplay playsinline muted></video>
-        <button id="cam-toggle" class="cam-toggle" aria-label="__NAME__くんを タップ">
+        <button id="cam-toggle" class="cam-toggle" aria-label="__NAME__を タップ">
           <span class="cam-toggle-icon" aria-hidden="true">
             <svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
               <path d="M22 60 Q22 22 60 22 Q98 22 98 60 L98 50 Q82 36 60 36 Q38 36 22 50 Z"
@@ -136,7 +136,7 @@
               <path d="M52 86 Q60 94 68 86" fill="#ff6b9d" stroke="#1a1a2e" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
             </svg>
           </span>
-          <span class="cam-toggle-label">__NAME__くんを<br/>タップ！</span>
+          <span class="cam-toggle-label">__NAME__を<br/>タップ！</span>
         </button>
       </div>
 
@@ -149,6 +149,7 @@
       </nav>
     </main>
 
+    <script src="../shared/baby.js" onerror="this.dataset.missing=1"></script>
     <script src="config.js"></script>
     <script src="../shared/ehon.js"></script>
   </body>

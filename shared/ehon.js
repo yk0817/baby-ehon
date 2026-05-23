@@ -5,7 +5,7 @@
  *     scenes: {
  *       <scene-key>: {
  *         sfxs:   ['ぶーん', ...],   // タップで出るオノマトペ
- *         talks:  ['__NAME__くん、〜'],  // 語りかけ吹き出し
+ *         talks:  ['__NAME__、〜'],  // 語りかけ吹き出し
  *         colors: ['pink','yellow','white'],
  *         notes:  [330, 415, 494, 660],
  *       },
@@ -16,6 +16,24 @@
 (() => {
   const CONFIG = window.BOOK_CONFIG || { scenes: {} };
   const SCENES = CONFIG.scenes || {};
+
+  // ─── 個人名展開（shared/baby.js / window.BABY を参照） ──
+  const BABY = window.BABY || { name: 'あかちゃん', honorific: '' };
+  const NAME_FULL = `${BABY.name || 'あかちゃん'}${BABY.honorific || ''}`;
+  const expandName = (s) => (typeof s === 'string' ? s.split('__NAME__').join(NAME_FULL) : s);
+
+  if (document.title) document.title = expandName(document.title);
+
+  const textWalker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+  let textNode;
+  while ((textNode = textWalker.nextNode())) {
+    if (textNode.nodeValue && textNode.nodeValue.includes('__NAME__')) {
+      textNode.nodeValue = expandName(textNode.nodeValue);
+    }
+  }
+  document.querySelectorAll('[aria-label*="__NAME__"]').forEach((el) => {
+    el.setAttribute('aria-label', expandName(el.getAttribute('aria-label')));
+  });
 
   const pages = Array.from(document.querySelectorAll('.page'));
   const fxLayer = document.getElementById('fx-layer');
@@ -183,7 +201,7 @@
 
     const talk = document.createElement('div');
     talk.className = 'talk-bubble';
-    talk.textContent = text;
+    talk.textContent = expandName(text);
     talk.style.left = originX + 'px';
     talk.style.top  = originY + 'px';
     fxLayer.appendChild(talk);
@@ -317,7 +335,7 @@
 
     const bubble = document.createElement('div');
     bubble.className = 'key-bubble ' + colors[Math.floor(Math.random() * colors.length)];
-    bubble.textContent = text;
+    bubble.textContent = expandName(text);
     bubble.style.left = x + 'px';
     bubble.style.top  = y + 'px';
     const tilt = (Math.random() * 30 - 15).toFixed(1);
