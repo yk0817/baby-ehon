@@ -4,12 +4,12 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="theme-color" content="#ffd166" />
-    <title>いちかくんの ほんだな</title>
+    <title>__NAME__の ほんだな</title>
     <link rel="stylesheet" href="shelf.css" />
   </head>
   <body>
     <header class="shelf-header">
-      <h1 class="shelf-title">いちかくんの<br/>ほんだな</h1>
+      <h1 class="shelf-title">__NAME__の<br/>ほんだな</h1>
       <p class="shelf-sub">よみたい えほんを えらんでね</p>
     </header>
 
@@ -149,7 +149,22 @@
     </main>
 
     <footer class="shelf-footer">
-      © いちかくんの ほんだな
+      © __NAME__の ほんだな
     </footer>
+
+    <script src="shared/baby.js" onerror="this.dataset.missing=1"></script>
+    <script>
+      (() => {
+        const BABY = window.BABY || { name: 'あかちゃん', honorific: '' };
+        const NAME_FULL = `${BABY.name || 'あかちゃん'}${BABY.honorific || ''}`;
+        const expand = (s) => (typeof s === 'string' ? s.split('__NAME__').join(NAME_FULL) : s);
+        document.title = expand(document.title);
+        const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+        let n;
+        while ((n = walker.nextNode())) {
+          if (n.nodeValue && n.nodeValue.includes('__NAME__')) n.nodeValue = expand(n.nodeValue);
+        }
+      })();
+    </script>
   </body>
 </html>
