@@ -410,6 +410,67 @@
     camWindow.addEventListener('dblclick', (e) => { e.stopPropagation(); stopCam(); });
   }
 
+  // ─── ロック（チャイルドロック）─────────────────────
+  const lockBtn = document.querySelector('.lock-btn');
+  const parentNav = document.querySelector('.parent-nav');
+  let isLocked = false;
+  let lockPressTimer = null;
+  const LOCK_UNLOCK_MS = 1500;
+
+  function beforeUnloadGuard(e) {
+    e.preventDefault();
+    e.returnValue = '';
+  }
+
+  function setLocked(v) {
+    isLocked = v;
+    if (parentNav) parentNav.classList.toggle('is-locked', v);
+    if (lockBtn) lockBtn.textContent = v ? '🔓' : '🔒';
+    if (v) {
+      const el = document.documentElement;
+      const req = el.requestFullscreen || el.webkitRequestFullscreen;
+      if (req) {
+        try { req.call(el).catch(() => {}); } catch (_) {}
+      }
+      window.addEventListener('beforeunload', beforeUnloadGuard);
+    } else {
+      if (document.exitFullscreen) {
+        try { document.exitFullscreen().catch(() => {}); } catch (_) {}
+      }
+      window.removeEventListener('beforeunload', beforeUnloadGuard);
+    }
+  }
+
+  function startLockPress() {
+    if (!lockBtn) return;
+    lockBtn.classList.add('is-pressing');
+    clearTimeout(lockPressTimer);
+    lockPressTimer = setTimeout(() => {
+      setLocked(false);
+      lockBtn.classList.remove('is-pressing');
+    }, LOCK_UNLOCK_MS);
+  }
+  function cancelLockPress() {
+    if (!lockBtn) return;
+    clearTimeout(lockPressTimer);
+    lockBtn.classList.remove('is-pressing');
+  }
+
+  if (lockBtn) {
+    lockBtn.addEventListener('pointerdown', (e) => {
+      e.stopPropagation();
+      if (!isLocked) {
+        setLocked(true);
+      } else {
+        startLockPress();
+      }
+    });
+    ['pointerup', 'pointerleave', 'pointercancel'].forEach((ev) => {
+      lockBtn.addEventListener(ev, (e) => { e.stopPropagation(); cancelLockPress(); });
+    });
+    lockBtn.addEventListener('contextmenu', (e) => e.preventDefault());
+  }
+
   // ─── Kickoff ──────────────────────────────────────────
   restartTimers();
   document.addEventListener('pointerdown', () => ensureAudio(), { once: true });
