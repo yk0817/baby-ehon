@@ -290,6 +290,67 @@ body.flash::after {
   text-decoration: none;
 }
 
+/* ─── ロックボタン ───────────────────────────────────── */
+.lock-btn {
+  width: 44px; height: 44px;
+  border-radius: 50%;
+  border: 3px solid var(--ink);
+  background: #fff;
+  color: var(--ink);
+  font-size: 20px;
+  font-weight: 900;
+  cursor: pointer;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  -webkit-user-select: none;
+  user-select: none;
+  touch-action: manipulation;
+}
+.lock-btn::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: conic-gradient(var(--pink) var(--p, 0%), transparent var(--p, 0%));
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 80ms ease;
+}
+.lock-btn.is-pressing::after { opacity: 0.5; animation: lockFill 1500ms linear forwards; }
+@keyframes lockFill {
+  from { --p: 0%; }
+  to   { --p: 100%; }
+}
+@property --p {
+  syntax: '<percentage>';
+  initial-value: 0%;
+  inherits: false;
+}
+.parent-nav.is-locked {
+  background: rgba(255, 200, 200, 0.85);
+}
+.parent-nav.is-locked .home-btn,
+.parent-nav.is-locked .nav-btn,
+.parent-nav.is-locked .dots {
+  opacity: 0.25;
+  pointer-events: none;
+}
+.parent-nav.is-locked .lock-btn {
+  background: var(--pink);
+  color: #fff;
+  animation: lockPulse 1.6s ease-in-out infinite alternate;
+}
+@keyframes lockPulse {
+  0%   { transform: scale(1); }
+  100% { transform: scale(1.12); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .parent-nav.is-locked .lock-btn { animation: none; }
+  .lock-btn.is-pressing::after { animation: none; opacity: 0.5; }
+}
+
 /* ─── カメラ ミラー窓 ─────────────────────────────────── */
 .cam-window {
   position: fixed;
