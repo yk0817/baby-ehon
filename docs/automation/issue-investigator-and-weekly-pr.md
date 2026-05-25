@@ -412,3 +412,161 @@ cron は最後に有効化する。次の順序で段階的に確認する。
 - リポジトリ Secrets に登録（Claude は触れない）
   - `ANTHROPIC_API_KEY` — Anthropic Console から発行
   - `BABY_EHON_NAME_DENYLIST` — `本名,愛称,...` のカンマ区切り
+
+---
+
+## 11. 処理フロー（シーケンス & ライフサイクル）
+
+### 11.1 Daily Investigator のシーケンス
+
+cron 起動から Issue コメント投稿までの時系列インタラクション。
+
+```mermaid
+sequenceDiagram
+    participant Cron as cron 09:00 JST
+    participant Runner as GHA Runner
+    participant Agent as LangGraph Agent
+    participant LLM as Anthropic API
+    participant GH as GitHub API
+
+    Cron->>Runner: trigger workflow
+    Runner->>Runner: setup uv + pip install
+    Runner->>Agent: python -m daily_investigator.run
+    Agent->>GH: list open issues
+    GH-->>Agent: issues #1..#7
+
+    loop 各 Issue
+        Agent->>GH: get comments
+        GH-->>Agent: comments
+        alt 今日処理済み かつ FORCE 未指定
+            Agent->>Agent: dedupe で skip
+        else 未処理
+            Agent->>LLM: research_notes
+            LLM-->>Agent: 先行研究リスト
+            Agent->>LLM: difficulty_estimate
+            LLM-->>Agent: 構造化 JSON
+            Agent->>LLM: feature_proposal
+            LLM-->>Agent: 5冊への追加案
+            Agent->>LLM: score_priority
+            LLM-->>Agent: スコア + 根拠
+            Agent->>Agent: format_comment
+            Agent->>Agent: privacy_check
+            alt privacy OK
+                Agent->>GH: create_comment
+                GH-->>Agent: comment URL
+            else 違反検出
+                Agent->>Agent: error 記録、スキップ
+            end
+        end
+    end
+
+    Agent-->>Runner: 完了レポート
+    Runner-->>Cron: success or failure
+```
+
+### 11.2 Weekly Implementer のシーケンス
+
+スコア集計から Draft PR 作成、人間レビューまでの時系列。
+
+```mermaid
+sequenceDiagram
+    participant Cron as cron 月曜 10:00 JST
+    participant Runner as GHA Runner
+    participant Agent as LangGraph Agent
+    participant LLM as Anthropic API
+    participant Git as git
+    participant GH as GitHub API
+    participant Human as 人間レビュアー
+
+    Cron->>Runner: trigger workflow
+    Runner->>Runner: setup uv + pip install + git config
+    Runner->>Agent: python -m weekly_implementer.run
+
+    Agent->>GH: list open issues
+    GH-->>Agent: issues
+    Agent->>GH: get all comments per issue
+    GH-->>Agent: comments
+    Agent->>Agent: collect_scores
+    Agent->>Agent: select_top
+
+    Agent->>Agent: gather_context (allowlist 読込)
+    Agent->>LLM: plan_change
+    LLM-->>Agent: 変更計画 + 触るファイル
+    Agent->>LLM: generate_patch
+    LLM-->>Agent: 全ファイル書き換え案
+    Agent->>Agent: privacy_check
+
+    alt privacy 違反
+        Agent->>GH: 失敗コメント投稿
+        Agent-->>Runner: exit 1
+    else OK
+        Agent->>Git: write files
+        Agent->>Git: commit + branch
+        Agent->>Git: push
+        Agent->>GH: gh pr create --draft
+        GH-->>Agent: PR URL
+        Agent->>GH: isDraft 確認
+        Agent-->>Runner: 完了レポート
+
+        Note over Human,GH: ここから人間ターン
+        Human->>GH: PR をレビュー
+        alt 承認
+            Human->>GH: Ready for review に変更
+            Human->>GH: マージ
+            GH->>GH: Closes 記法で Issue 自動クローズ
+        else 要修正
+            Human->>GH: コメント or close
+        end
+    end
+```
+
+### 11.3 週間ライフサイクル
+
+Issue 作成から merge までの 1 週間の流れ。
+
+```mermaid
+flowchart TD
+    Create["人間が Issue 作成<br>enhancement + research-based"]
+    Day1["Day 1 09:00 JST<br>Daily Investigator<br>初回コメント投稿"]
+    DayN["Day 2-6 09:00 JST<br>dedupe で skip<br>または再評価で更新"]
+    Mon["月曜 10:00 JST<br>Weekly Implementer 起動"]
+    Pick["最新 claude-score を集計<br>Top Issue を選定"]
+    Code["LangGraph がコード生成"]
+    PR["Draft PR を作成"]
+    Review{"人間がレビュー"}
+    Merge["マージ"]
+    Fix["手動修正 or close"]
+    Close["Issue クローズ<br>Closes 記法"]
+    Next["来週の Daily で<br>残った Issue を再評価"]
+
+    Create --> Day1
+    Day1 --> DayN
+    DayN --> Mon
+    Mon --> Pick
+    Pick --> Code
+    Code --> PR
+    PR --> Review
+    Review -->|承認| Merge
+    Review -.->|要修正| Fix
+    Merge --> Close
+    Close --> Next
+    Fix --> Next
+    DayN --> Next
+```
+
+### 11.4 プライバシーガード適用ポイント
+
+四重ガード（5 章）が処理のどこで効いているかを俯瞰する図。
+
+```mermaid
+flowchart LR
+    Input["Issue 本文 / 既存コメント"] --> Sys["ガード1<br>System Prompt"]
+    Sys --> LLMCall["LLM 呼び出し<br>(Anthropic API)"]
+    LLMCall --> Output["生成テキスト<br>(コメント / コード / PR本文)"]
+    Output --> Check["ガード2<br>privacy.py<br>denylist + __NAME__ assert"]
+    Check -->|OK| Mask["ガード3<br>::add-mask:: で<br>ログ漏洩防止"]
+    Check -.->|違反| Stop["abort<br>+ 失敗コメント"]
+    Mask --> Action["GitHub Action<br>(Comment / PR作成)"]
+    Action --> Draft["ガード4<br>PR は常に Draft<br>人間マージ必須"]
+    Draft --> Human["人間レビュアー"]
+```
