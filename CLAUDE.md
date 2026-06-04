@@ -48,12 +48,27 @@ window.BABY = {
 
 コミット直前に走らせる:
 
-```bash
-# ステージ済み差分に個人名らしき文字列が混じっていないか
-git diff --cached | grep -E "__NAME__|本名|<その他の固有名>" && echo "STOP: 個人名検出" || echo "OK"
+検査対象の個人名は **このファイルにハードコードしない**（公開リポジトリに実名を残さないため）。gitignore 済みのローカルソースから組み立てる:
 
-# トラッキング対象ファイル全体（履歴ではなく現在の状態）に個人名がないか
-git ls-files | xargs grep -l "__NAME__" 2>/dev/null
+- `shared/baby.js` の `name`（gitignore 済み）
+- 任意で `.privacy-denylist`（1 行 1 パターン、gitignore 済み。配偶者名・あだ名などを追記）
+
+```bash
+# 個人名パターンをローカル限定ファイルから組み立てる（リポジトリには残さない）
+NAMES=$(
+  { sed -n "s/.*name: *'\([^']*\)'.*/\1/p" shared/baby.js 2>/dev/null
+    cat .privacy-denylist 2>/dev/null
+  } | grep -v '^$' | sort -u | paste -sd '|' -
+)
+
+if [ -z "$NAMES" ]; then
+  echo "WARN: ローカル個人名 denylist が空（shared/baby.js を用意すると検査が有効化）"
+else
+  # ステージ済み差分に個人名らしき文字列が混じっていないか
+  git diff --cached | grep -E "$NAMES" && echo "STOP: 個人名検出" || echo "OK"
+  # トラッキング対象ファイル全体（履歴ではなく現在の状態）に個人名がないか
+  git ls-files | xargs grep -lE "$NAMES" 2>/dev/null
+fi
 ```
 
 ヒットが出たら **コミットせず**、`__NAME__` プレースホルダ＋ `shared/baby.js` への移設に書き換える。
