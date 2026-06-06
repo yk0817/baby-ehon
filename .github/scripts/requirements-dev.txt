@@ -1,0 +1,9 @@
+# 開発・テスト用依存（CI のテストジョブ + ローカル）
+# 実行時依存も含めて入れる
+-r requirements.txt
+
+pytest>=8.0
+pytest-cov>=5.0         # カバレッジ（目標 80%+）
+black>=24.0             # フォーマッタ
+ruff>=0.5               # リンタ
+isort>=5.13             # import 並べ替え
