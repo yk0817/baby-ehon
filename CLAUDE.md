@@ -110,6 +110,18 @@ fi
 - 実装タスクは milestone「Phase 1〜6」と `automation` ラベルで管理（#10〜#24）
 - **Issue 本文を書くときも `__NAME__` 以外に人名を入れない**。テンプレ `.github/ISSUE_TEMPLATE/` に注意書きあり
 
+## Issue 着手ルール（厳守・例外なし）
+
+このリポジトリの Issue を **Claude が実装するとき**は、着手前に必ず次を満たす。パイプラインの作成者と同じ入口ゲートを Claude 自身にも適用する。
+
+1. **approved 必須（入口ゲート）**: 対象 Issue に **`approved` ラベルが付いているかを着手前に確認する**（`gh issue view <N> --json labels`）。
+   - 付いていなければ **実装に着手しない・ブランチも切らない**。人間に「`approved` を付けてほしい」と依頼して**停止**する
+   - 自分で `approved` を貼らない（承認は人間の専権）
+2. **1 Issue = 1 ブランチ = 1 PR**: 複数 Issue を 1 つのブランチ／PR に**束ねない**。ブランチ名は `claude/issue-<N>`
+3. **PR 本文に `Closes #N`** を必ず入れ、その Issue だけを閉じる
+4. **PR の作成・マージは毎回承認プロンプト（`ask`）**。`gh pr create` / `gh pr merge` / `gh pr ready` は実行のたびに人間の承認が出る。**承認されれば Claude が実行してよい**（無確認では通さない）。承認が得られない場合はブランチ push までで止める
+5. 着手前に対象言語のルール（`~/.claude/docs/lang-rules/<lang>/`）を Read し、TDD（テスト先行）で進める
+
 ## 参考
 
 - 個人設定テンプレ: [`shared/baby.example.js`](shared/baby.example.js)
