@@ -1,0 +1,9 @@
+# baby-ehon 自動化パイプライン — 実行時依存
+# 設計: docs/automation/agent-pipeline.md §9 / §3.1
+# 注意: ここに列挙するのは CI（.github/scripts）専用。絵本本体（HTML/CSS/JS）には影響しない。
+
+langgraph>=0.2          # 各役のエージェントグラフ
+openai>=1.40            # LLM 呼び出し（OpenAI 公式 SDK・base_url/model 差し替え可、§3.1）
+PyGithub>=2.3           # GitHub API（Issue/PR/コメント/ラベル操作）
+pydantic>=2.7           # 構造化出力・State スキーマの検証
+playwright>=1.45        # こどもレビュワーのブラウザ操作（§7、child_reviewer のみ）
