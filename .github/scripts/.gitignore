@@ -1,0 +1,9 @@
+# Python 実行・テストの生成物（コミットしない）
+__pycache__/
+*.py[cod]
+.coverage
+.coverage.*
+htmlcov/
+.pytest_cache/
+.ruff_cache/
+.venv/
