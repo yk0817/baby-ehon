@@ -30,9 +30,10 @@
    - 優先度スコア（0-100）
    - 現在のラインナップに追加するならどんな機能か の提案
 2. **リサーチャー（提案）— 週次**: 発達研究と現状ラインナップを踏まえ、「次に作るべき新しい絵本／既存絵本への機能追加」を **1 件、Issue として自動起票** する
-3. **作成者 — 週次**: 直近の最高スコア Issue を 1 つ選び、実装して Draft PR を出す
-4. **こども（レビュワー）— Draft PR ごと**: 対象児（1 歳）の発達視点で、絵本を **実際にブラウザで触りながら（スクリーンショット）かつコード差分を読んで**、PR にレビューコメントを書く
-5. **人間 — 最終ゲート**: PR をレビューして、承認・マージする（自動マージは絶対にしない）
+3. **人間 — 作成承認ゲート（入口）**: 調査済みの Issue を見て、実装してよいものに **`approved` ラベルを貼る**（§2.2）。これが無い Issue は作成者が手を付けない
+4. **作成者 — 週次**: **`approved` 付き**の最高スコア Issue を 1 つ選び、実装して Draft PR を出す
+5. **こども（レビュワー）— Draft PR ごと**: 対象児（1 歳）の発達視点で、絵本を **実際にブラウザで触りながら（スクリーンショット）かつコード差分を読んで**、PR にレビューコメントを書く
+6. **人間 — 最終ゲート（出口）**: PR をレビューして、承認・マージする（自動マージは絶対にしない）
 
 ### 期待する効果
 
@@ -100,6 +101,32 @@ flowchart TD
 - **自動クローズの条件**: 上記 3 ラベルがすべて揃ったら、その Issue を `close`（reason: completed）し、「3 役の処理が完了したため自動クローズ」と機械可読マーカー付きでコメントする。判定は各役がラベル付与の直後に行い、揃っていればクローズする（最後にラベルを貼った役がクローザになる）
 - **人間ゲートとの関係**: これは **Issue ライフサイクルの自動化**であり、PR の自動マージではない（§1 非ゴール）。Draft PR は引き続き人間がレビュー・マージする。人間が PR をマージすれば `Closes #N` 記法でも Issue は閉じるため、両者は二重に作用しても冪等（既に closed なら何もしない）
 - ラベルは事前に作成しておく（§13 事前作業）。`automation:skip` が付いた Issue にはステージラベルを付与せず、自動クローズ対象から外す
+
+### 2.2 作成承認ゲート（`approved` ラベル）
+
+人間ゲートを **入口と出口の二段**に分ける。出口（PR の merge）だけだと、作成者が「作ってほしくない Issue」にも Draft PR を 1 本浪費してしまう。これを防ぐため、**実装に入る前に人間が `approved` ラベルで承認する**入口ゲートを設ける。
+
+| ラベル | 誰が貼る | 効果 |
+|---|---|---|
+| `approved` | **人間** | 「この Issue は実装してよい」のゴーサイン。**作成者（Weekly）は `approved` 付き Issue だけを実装対象にする** |
+
+- **作成者の選定は `approved` 必須**: `select_top`（§6.1）は `approved` ラベルの付いた Issue に絞り、その中で最新 `claude-score` 最上位を 1 件選ぶ。`approved` が 1 件も無ければその週は実装しない（何もせず終了）
+- **典型フロー**: 起票（Proposer / 手動）→ `stage:researched`（リサーチャー①が採点）→ **人間が中身を見て `approved`** → `stage:implemented`（作成者が Draft PR）→ `stage:child-reviewed`（こども所見）→ **人間が PR を merge**
+- `approved` はステージラベル（§2.1）とは別物。前者は**人間の承認**、後者は**各役の処理完了の記録**。自動クローズ条件（3 ステージ揃い）には `approved` を含めない
+- `approved` も事前に作成しておく（§13 事前作業）
+
+```mermaid
+flowchart LR
+    New["Issue 起票<br>(Proposer / 手動)"] --> Researched["stage:researched<br>(リサーチャー① 採点)"]
+    Researched --> Gate1{"人間が中身を確認"}
+    Gate1 -->|実装してよい| Approved["approved ラベル"]
+    Gate1 -.->|まだ/不要| Hold["保留 (作成者は触らない)"]
+    Approved --> Impl["stage:implemented<br>(作成者 Draft PR)"]
+    Impl --> Child["stage:child-reviewed<br>(こども 所見)"]
+    Child --> Gate2{"人間が PR をレビュー"}
+    Gate2 -->|承認| Merge["merge → Issue close"]
+    Gate2 -.->|要修正| Fix["コメント or close"]
+```
 
 ---
 
@@ -392,7 +419,7 @@ class ProposerState(TypedDict):
 flowchart TD
     Start([start]) --> List["list_open_issues<br>(PyGithub)"]
     List --> Collect["collect_scores<br>(最新 claude-score マーカー抽出)"]
-    Collect --> Select["select_top<br>(automation:skip / wip 除外、<br>同点は Issue 番号小)"]
+    Collect --> Select["select_top<br>(approved 必須、automation:skip / wip 除外、<br>同点は Issue 番号小)"]
     Select --> Gather["gather_context<br>(allowlist でファイル読込、150KB cap)"]
     Gather --> Plan["plan_change<br>(LLM: 変更計画 + 触るファイル)"]
     Plan --> Generate["generate_patch<br>(LLM: 全ファイル書き換え案)"]
@@ -406,11 +433,13 @@ flowchart TD
     Trigger --> End2([end])
 ```
 
+`select_top` は **`approved` ラベル（§2.2、人間の作成承認）が付いた Issue だけ**を候補にし、その中で最新 `claude-score` 最上位を 1 件選ぶ（`automation:skip` / wip は除外、同点は Issue 番号小）。`approved` が 1 件も無ければ実装せずに終了する。
+
 ### 6.2 State スキーマ
 
 ```python
 class WeeklyState(TypedDict):
-    candidate_issues: list[dict]   # [{number, title, score, comment_url}]
+    candidate_issues: list[dict]   # [{number, title, score, comment_url}] ※approved 済みのみ
     selected_issue: dict           # {number, title, body, score}
     context_files: dict[str, str]  # path -> contents
     change_plan: str
@@ -793,7 +822,7 @@ cron は最後に有効化する。次の順序で段階的に確認する。
 - リポジトリ Secrets に登録（Claude は触れない）
   - `OPENAI_API_KEY` — 利用する OpenAI API 提供元から発行（必要なら `OPENAI_BASE_URL` も登録、§3.1）
   - `BABY_EHON_NAME_DENYLIST` — `本名,愛称,...` のカンマ区切り
-- ラベルの作成: `claude-proposed`, `needs-child-review`, `automation:skip`, `score-lock`, および役割ステージラベル `stage:researched` / `stage:implemented` / `stage:child-reviewed`（§2.1）
+- ラベルの作成: `approved`（人間の作成承認ゲート、§2.2）, `claude-proposed`, `needs-child-review`, `automation:skip`, `score-lock`, および役割ステージラベル `stage:researched` / `stage:implemented` / `stage:child-reviewed`（§2.1）
 
 ---
 
@@ -942,8 +971,11 @@ flowchart TD
     Propose["金曜 09:00 JST<br>リサーチャー② が発案<br>Issue 自動起票"]
     Manual["人間が Issue 作成<br>(手動起票も可)"]
     Day1["2日ごと 09:00 JST<br>リサーチャー① が調査<br>claude-score + stage:researched"]
+    ApproveGate{"人間が中身を確認<br>(入口ゲート §2.2)"}
+    Approved["approved ラベル"]
+    Hold["保留<br>(作成者は触らない)"]
     Mon["月曜 10:00 JST<br>作成者 が起動"]
-    Pick["最新 claude-score を集計<br>Top Issue を選定"]
+    Pick["approved の中で<br>claude-score 最上位を選定"]
     Code["LangGraph がコード生成<br>Draft PR 作成<br>stage:implemented"]
     ChildR["こども が絵本を実際に触る<br>スクショ + コード差分で所見<br>stage:child-reviewed"]
     AutoClose{"3 役ラベルが揃った?<br>(§2.1)"}
@@ -955,7 +987,10 @@ flowchart TD
 
     Propose --> Day1
     Manual --> Day1
-    Day1 --> Mon
+    Day1 --> ApproveGate
+    ApproveGate -->|実装してよい| Approved
+    ApproveGate -.->|まだ/不要| Hold
+    Approved --> Mon
     Mon --> Pick
     Pick --> Code
     Code --> ChildR

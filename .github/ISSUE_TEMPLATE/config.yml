@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 自動化パイプライン設計（役割・承認ラベル・プライバシーガード）
+    url: https://github.com/yk0817/baby-ehon/blob/main/docs/automation/agent-pipeline.md
+    about: Issue を立てる前に、ラベル運用（approved / stage:*）とプライバシー方針を確認
+  - name: プライバシー方針（CLAUDE.md）
+    url: https://github.com/yk0817/baby-ehon/blob/main/CLAUDE.md
+    about: 公開リポジトリで守るべき個人情報の扱い（__NAME__ プレースホルダ等）

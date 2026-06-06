@@ -89,6 +89,26 @@ fi
 
 - `git push` 前には必ずユーザーの許可を求める（グローバルルールと同じ）
 - 公開リポジトリなので、push は事実上の世界公開と同義。**特に慎重に**
+- `main` はブランチ保護下（PR 必須・直 push 不可・force push/削除禁止・enforce_admins）。変更は必ず **ブランチ → PR → 人間が merge**。承認は実質オーナー1人
+
+## 自動化パイプライン（Issue → PR → 人間 merge）
+
+設計の正は [`docs/automation/agent-pipeline.md`](docs/automation/agent-pipeline.md)。3 エージェント役（リサーチャー / 作成者 / こども）＋人間ゲートで回す。**人間ゲートは二段**: 入口（Issue に `approved`）と出口（PR を merge）。
+
+ラベル運用（Issue を扱うときに必ず意識する）:
+
+| ラベル | 誰が | 意味 |
+|---|---|---|
+| `approved` | **人間** | 実装してよいの承認。**作成者は `approved` 付きだけ実装**（入口ゲート） |
+| `stage:researched` | リサーチャー① | 調査・採点済み（`claude-score` 付与） |
+| `stage:implemented` | 作成者 | Draft PR 化済み |
+| `stage:child-reviewed` | こども | 所見済み（Approve はしない） |
+| `claude-proposed` | Proposer | 自動起票 Issue |
+| `automation:skip` | 人間 | 自動処理の対象外にする |
+
+- **3 つの `stage:*` が揃うと Issue は自動クローズ**（§2.1）。人間 merge の `Closes #N` とも冪等に共存
+- 実装タスクは milestone「Phase 1〜6」と `automation` ラベルで管理（#10〜#24）
+- **Issue 本文を書くときも `__NAME__` 以外に人名を入れない**。テンプレ `.github/ISSUE_TEMPLATE/` に注意書きあり
 
 ## 参考
 
