@@ -1,0 +1,84 @@
+# 3 役の処理が揃った Issue を自動クローズする label-triggered workflow。
+#
+# 3 つのエージェント役（リサーチャー / 作成者 / こども）は、ある Issue を処理し終えると
+# 自分の役のステージラベルを 1 つ貼る（§2.1）。3 役ぶんが揃った Issue を機械的に畳むのが
+# この workflow の役目。ラベルが付くたび（issues: labeled）に発火し、揃っていれば閉じる。
+#
+# 設計上の狙い:
+#   - 既存の役パッケージ（daily_investigator 等）を改変せず、ラベル付与の副作用として
+#     クローズを実現する（衝突回避・冪等）。
+#   - 判定ロジックは common/auto_close.py（純関数 should_close）と意味を一致させる。
+#     STAGE_LABELS / SKIP_LABEL / CLOSE_MARKER は両者で同じ値を使う（下の JS のコメント参照）。
+#   - 人間が PR を merge して `Closes #N` で閉じるケース（auto-close-linked-issues.yml）とも
+#     二重に作用して冪等（既に closed なら何もしない）。
+#
+# privacy: 扱うのは Issue 番号とラベル名のみ。個人名は出力しない（baby-ehon プライバシー方針）。
+name: auto-close-staged-issues
+
+on:
+  issues:
+    types: [labeled]
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  close-staged-issue:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Close issue when all three stage labels are present
+        uses: actions/github-script@v7
+        with:
+          script: |
+            // common/auto_close.py と意味を一致させる（単一情報源はそちら）。
+            //   STAGE_LABELS  -> auto_close.STAGE_LABELS
+            //   SKIP_LABEL    -> auto_close.SKIP_LABEL
+            //   CLOSE_MARKER  -> auto_close.CLOSE_MARKER
+            const STAGE_LABELS = [
+              'stage:researched',
+              'stage:implemented',
+              'stage:child-reviewed',
+            ];
+            const SKIP_LABEL = 'automation:skip';
+            const CLOSE_MARKER = '<!-- auto-closed: 3-stage-complete -->';
+
+            const { owner, repo } = context.repo;
+            const number = context.payload.issue.number;
+
+            // 当該 Issue の「現在の」ラベル集合を取得（payload は発火時点のスナップショット
+            // なので、API で取り直して最新状態で判定する）。
+            const { data: issue } = await github.rest.issues.get({
+              owner, repo, issue_number: number,
+            });
+
+            // 既に closed なら何もしない（§2.1 冪等。人間 merge での close とも共存）。
+            if (issue.state === 'closed') {
+              core.info(`#${number} は既に closed。スキップ。`);
+              return;
+            }
+
+            const labels = new Set(issue.labels.map((l) => l.name));
+
+            // auto_close.should_close と同じ判定:
+            //   automation:skip があれば対象外、無ければ 3 ステージ全部揃っているか。
+            if (labels.has(SKIP_LABEL)) {
+              core.info(`#${number} は ${SKIP_LABEL} 付き。自動クローズ対象外。`);
+              return;
+            }
+            const allStaged = STAGE_LABELS.every((s) => labels.has(s));
+            if (!allStaged) {
+              core.info(`#${number} はステージラベルが揃っていません。何もしません。`);
+              return;
+            }
+
+            // 3 役完了 → 機械可読マーカー付きコメントを投稿してクローズ。
+            await github.rest.issues.createComment({
+              owner, repo, issue_number: number,
+              body: `3 役（リサーチャー / 作成者 / こども）の処理が完了したため自動クローズしました。\n${CLOSE_MARKER}`,
+            });
+            await github.rest.issues.update({
+              owner, repo, issue_number: number,
+              state: 'closed', state_reason: 'completed',
+            });
+            core.info(`#${number} を closed にしました（3-stage-complete）。`);
