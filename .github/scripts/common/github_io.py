@@ -17,7 +17,7 @@
 from __future__ import annotations
 
 import os
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 from typing import Any
 
 TOKEN_ENV = "GITHUB_TOKEN"
@@ -79,3 +79,7 @@ class GitHubIO:
     def create_pull(self, *, title: str, body: str, head: str, base: str) -> Any:
         """Pull Request を作成する。"""
         return self._repo().create_pull(title=title, body=body, head=head, base=base)
+
+    def create_issue(self, *, title: str, body: str, labels: Sequence[str] = ()) -> Any:
+        """Issue を作成する（Proposer の自動起票用、§5.1）。"""
+        return self._repo().create_issue(title=title, body=body, labels=list(labels))

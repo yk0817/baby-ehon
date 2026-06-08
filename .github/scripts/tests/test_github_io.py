@@ -34,6 +34,7 @@ class _FakeRepo:
         self.issue = _FakeIssue()
         self.requested_issue = None
         self.created_pull = None
+        self.created_issue = None
 
     def get_issue(self, number):
         self.requested_issue = number
@@ -42,6 +43,10 @@ class _FakeRepo:
     def create_pull(self, **kwargs):
         self.created_pull = kwargs
         return "pull-obj"
+
+    def create_issue(self, **kwargs):
+        self.created_issue = kwargs
+        return "issue-obj"
 
 
 class _FakeClient:
@@ -94,4 +99,13 @@ class TestGitHubIO:
             "body": "b",
             "head": "claude/issue-14",
             "base": "main",
+        }
+
+    def test_create_issue_delegates(self):
+        io, client = _make_io()
+        io.create_issue(title="t", body="b", labels=["claude-proposed"])
+        assert client.repo.created_issue == {
+            "title": "t",
+            "body": "b",
+            "labels": ["claude-proposed"],
         }
