@@ -1,0 +1,80 @@
+# リサーチャー① Daily Investigator — 既存 Issue を調査・採点する自動化ワークフロー。
+# 設計の正: docs/automation/agent-pipeline.md §4 / §8.3 / §9 / §11。
+#
+# このフェーズ（P2）では workflow_dispatch のみ有効。cron は P6（統合・cron 有効化）で
+# 検証手順 8 まで通ったあとに有効化する（§11 step9 / §13 PR-10）。
+#
+# privacy: denylist 値は Secret 管理し、起動時に ::add-mask:: でログ上マスクする（§8.3）。
+#          値そのものはログに出さない。
+name: Daily Issue Investigation (リサーチャー①)
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "true なら GitHub への書き込みを行わず生成のみ（§11 step1）"
+        type: boolean
+        default: true
+      only_issue:
+        description: "特定 Issue 番号だけを対象にする（空なら通常対象すべて）"
+        type: string
+        default: ""
+
+  # P6 で有効化（§11 step9 / §13 PR-10）。
+  # cron: 0 0 */2 * * = 00:00 UTC・2 日ごと = 09:00 JST 隔日（§4.5）。
+  # schedule:
+  #   - cron: "0 0 */2 * *"
+
+# 最小権限: Issue へのコメント/ラベル付与に issues:write、チェックアウトに contents:read。
+permissions:
+  issues: write
+  contents: read
+
+# 多重起動防止。実行中のものはキャンセルせず直列化する。
+concurrency:
+  group: daily-investigation
+  cancel-in-progress: false
+
+jobs:
+  investigate:
+    runs-on: ubuntu-latest
+    env:
+      DRY_RUN: ${{ inputs.dry_run }}
+      ONLY_ISSUE: ${{ inputs.only_issue }}
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      OPENAI_BASE_URL: ${{ vars.OPENAI_BASE_URL }}
+      LLM_MODEL_DAILY: ${{ vars.LLM_MODEL_DAILY }}
+      BABY_EHON_NAME_DENYLIST: ${{ secrets.BABY_EHON_NAME_DENYLIST }}
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      GITHUB_REPOSITORY: ${{ github.repository }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up uv (Python パッケージマネージャ)
+        uses: astral-sh/setup-uv@v6
+
+      - name: Install dependencies
+        working-directory: .github/scripts
+        run: uv pip install --system -r requirements.txt
+
+      # denylist 各値を Actions ログ上でマスク登録する（§8.3）。
+      # 値そのものは出力せず、::add-mask:: 登録のみ行う。空なら何もしない。
+      - name: Mask denylist tokens in logs
+        env:
+          BABY_EHON_NAME_DENYLIST: ${{ secrets.BABY_EHON_NAME_DENYLIST }}
+        run: |
+          if [ -z "${BABY_EHON_NAME_DENYLIST:-}" ]; then
+            echo "denylist は空。マスク登録は行いません。"
+            exit 0
+          fi
+          IFS=',' read -ra TOKENS <<< "$BABY_EHON_NAME_DENYLIST"
+          for token in "${TOKENS[@]}"; do
+            trimmed="$(echo "$token" | xargs)"
+            [ -n "$trimmed" ] && echo "::add-mask::$trimmed"
+          done
+          echo "denylist のマスク登録が完了しました。"
+
+      - name: Run Daily Investigator
+        working-directory: .github/scripts
+        run: python -m daily_investigator.run
