@@ -1,0 +1,104 @@
+# 作成者（Weekly Implementer）— 週 1 で「最上位の approved Issue」を実装し、
+# Draft PR を作成したあとにこどもレビュワー（child-review.yml）を連鎖起動する。
+#
+# 設計の正: docs/automation/agent-pipeline.md §6.4（PR 作成仕様）/ §6.5（こども連鎖）/
+#           §6.6（cron・モデル）/ §8.3（ログ漏洩防止）/ §9（ファイル配置）/ §11 step7（検証）。
+#
+# このフェーズ（P4）では workflow_dispatch（手動起動）専用。cron による定期実行
+# （10:00 JST 月曜）は Phase 6（統合・cron 有効化）で、検証手順 8 まで通ったあとに
+# 有効化する（§11 step9）。それまでは schedule ブロックをコメントアウトしておく。
+#
+# 入口ゲート: 作成者は approved 付き Issue だけを実装する（§2.2）。判定は run 実体側で行う。
+# 出口ゲート: PR は常にドラフトで作成し、マージは人間が行う（§6.4 / §8.4）。
+#
+# privacy（§8.3）: denylist（BABY_EHON_NAME_DENYLIST）の各値を ::add-mask:: で
+# マスクしてから Python を起動する。値そのものはログに出さない。
+#
+# こども連鎖（§6.5）: bot（GITHUB_TOKEN）が作成した PR は pull_request イベントを
+# 発火しないため、weekly_implementer.run 内の trigger_child_review ノードが
+# `gh workflow run child-review.yml -f pr_number=<N>` で明示起動する。そのため
+# このワークフローには actions: write 権限と、gh CLI 用の GH_TOKEN を渡しておく。
+name: Weekly PR from Top Issue (作成者)
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "true ならブランチ push / PR 作成を行わず生成のみ（書き込みなし、§11 step7）"
+        type: boolean
+        default: true
+
+  # P6 で有効化（§11 step9）。
+  # cron: 0 1 * * 1 = 01:00 UTC 月曜 = 10:00 JST 月曜（週 1 ペース、§6.6）。
+  # schedule:
+  #   - cron: "0 1 * * 1"
+
+# 権限（§6.5）:
+#   contents: write       — ブランチを push するため
+#   pull-requests: write  — Draft PR を作成・ラベル付与するため
+#   issues: write         — Issue への stage ラベル付与等のため
+#   actions: write        — child-review.yml を gh workflow run で連鎖起動するため
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+  actions: write
+
+# 多重起動防止。実行中のものはキャンセルせず直列化する。
+concurrency:
+  group: weekly-implementer
+  cancel-in-progress: false
+
+jobs:
+  implement:
+    runs-on: ubuntu-latest
+    env:
+      DRY_RUN: ${{ inputs.dry_run }}
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      OPENAI_BASE_URL: ${{ vars.OPENAI_BASE_URL }}
+      LLM_MODEL_CREATOR: ${{ vars.LLM_MODEL_CREATOR }}
+      BABY_EHON_NAME_DENYLIST: ${{ secrets.BABY_EHON_NAME_DENYLIST }}
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      # gh CLI（trigger_child_review の gh workflow run）用。
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      GITHUB_REPOSITORY: ${{ github.repository }}
+    steps:
+      # ブランチ push のため全履歴を取得する（fetch-depth: 0）。
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up uv (Python パッケージマネージャ)
+        uses: astral-sh/setup-uv@v6
+
+      - name: Install dependencies
+        working-directory: .github/scripts
+        run: uv pip install --system -r requirements.txt
+
+      # denylist 各値を Actions ログ上でマスク登録する（§8.3）。
+      # 値そのものは出力せず、::add-mask:: 登録のみ行う。空なら何もしない。
+      - name: Mask denylist tokens in logs
+        env:
+          BABY_EHON_NAME_DENYLIST: ${{ secrets.BABY_EHON_NAME_DENYLIST }}
+        run: |
+          if [ -z "${BABY_EHON_NAME_DENYLIST:-}" ]; then
+            echo "denylist は空。マスク登録は行いません。"
+            exit 0
+          fi
+          IFS=',' read -ra TOKENS <<< "$BABY_EHON_NAME_DENYLIST"
+          for token in "${TOKENS[@]}"; do
+            trimmed="$(echo "$token" | xargs)"
+            [ -n "$trimmed" ] && echo "::add-mask::$trimmed"
+          done
+          echo "denylist のマスク登録が完了しました。"
+
+      # コミットの author/committer 名。bot 名のみを使い、個人名・個人メアドは入れない。
+      - name: Configure git identity
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Run Weekly Implementer
+        working-directory: .github/scripts
+        run: python -m weekly_implementer.run
