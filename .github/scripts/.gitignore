@@ -7,3 +7,6 @@ htmlcov/
 .pytest_cache/
 .ruff_cache/
 .venv/
+
+# こどもレビュワーのスクショ出力（Actions artifact へ上げる一時生成物、§7.5）
+child-review-screenshots/
