@@ -39,6 +39,65 @@ uv pip install -r requirements-dev.txt
 uv run playwright install --with-deps chromium
 ```
 
+## Secrets / Variables の登録（人間が行う）
+
+公開リポジトリなので、**個人名や API キーは必ず Secret に入れ、値はコミットしない**（§8 / CLAUDE.md）。
+GitHub の **Settings → Secrets and variables → Actions** で登録します。Claude は触れません。
+
+### Secrets（暗号化・ログに出ない）
+
+| 名前 | 必須 | 内容 |
+|---|---|---|
+| `OPENAI_API_KEY` | 必須 | LLM 呼び出し用 API キー。利用する OpenAI（互換）提供元から発行 |
+| `BABY_EHON_NAME_DENYLIST` | 必須 | 検査で弾く家族名のカンマ区切り。**公開リポなので必ず Secret**。値はコード・ログに残さない（ワークフローが起動時に `::add-mask::` でログマスク、§8.3） |
+
+### Variables（任意・平文。機密ではない設定だけ）
+
+| 名前 | 必須 | 内容 |
+|---|---|---|
+| `OPENAI_BASE_URL` | 任意 | OpenAI 互換でないエンドポイントを使う場合の base_url（§3.1） |
+| `LLM_MODEL_DAILY` | 任意 | Daily の使用モデル。未設定ならコード側の既定（例 `claude-haiku-4-5`、§4.5） |
+
+### `gh secret` / `gh variable` での登録例
+
+```bash
+# Secrets（値はプロンプトで貼るか、安全なソースから渡す。履歴に残さない）
+gh secret set OPENAI_API_KEY --repo yk0817/baby-ehon
+gh secret set BABY_EHON_NAME_DENYLIST --repo yk0817/baby-ehon --body '<家族の名前をカンマ区切り>'
+
+# Variables（任意）
+gh variable set OPENAI_BASE_URL --repo yk0817/baby-ehon --body 'https://api.example.com/v1'
+gh variable set LLM_MODEL_DAILY --repo yk0817/baby-ehon --body 'claude-haiku-4-5'
+```
+
+> `BABY_EHON_NAME_DENYLIST` の `--body` には**実際の家族名**を入れますが、それはローカルのターミナルで直接実行してください（このリポジトリには値を一切コミットしない）。
+
+## Daily ワークフローの回し方（dispatch）
+
+Daily は `.github/workflows/daily-issue-investigation.yml` で動きます。現フェーズ（P2）は
+`workflow_dispatch` のみ有効で、cron はコメントアウト済み（P6 で有効化）。
+
+```bash
+# 投稿なしの dry-run（推奨。Issue #1 だけを対象にする例）
+gh workflow run daily-issue-investigation.yml \
+  --repo yk0817/baby-ehon \
+  -f dry_run=true \
+  -f only_issue=1
+```
+
+GitHub UI からは Actions → "Daily Issue Investigation (リサーチャー①)" → Run workflow で、
+`dry_run` / `only_issue` を指定して起動できます。実投稿は `dry_run=false` にしますが、
+**まず dry-run と下記ローカル再現で内容を確認**してから行ってください。
+
+### ローカルでの再現（§11 step1）
+
+CI と同じことを手元で確認できます（投稿なし）。
+
+```bash
+cd .github/scripts
+DRY_RUN=true ONLY_ISSUE=1 uv run python -m daily_investigator.run
+```
+
 ## ローカル dry-run（API 書き込みなし）
 
 各役は `DRY_RUN=true` で「生成は行うが GitHub への投稿はしない」モードになります（実装は各 Phase で追加）。
