@@ -1,0 +1,136 @@
+# こども（レビュワー）— Draft PR / 人間 PR の絵本を 1 歳児視点で所見する自動化ワークフロー。
+#
+# 設計の正: docs/automation/agent-pipeline.md §7（こどもレビュワー）/ §7.3（手順）/
+#           §7.5（artifact 保持7日）/ §7.6（トリガー・モデル）/ §7.7（配信 allowlist）/
+#           §8.3（ログ漏洩防止）/ §9（ファイル配置）/ §11 step8（検証手順）。
+#
+# 3 経路で起動できる（§7.6）:
+#   1. 作成者からの連鎖起動: gh workflow run child-review.yml -f pr_number=<N>（bot PR 用）
+#      → workflow_dispatch として届く。
+#   2. 人間 PR: pull_request（types: opened, labeled）。ただし `needs-child-review`
+#      ラベルが付いた PR のみ処理する（下記 job の if ガード）。
+#   3. 手動再実行: workflow_dispatch（pr_number を手で指定）。
+#
+# 二重起動防止（§7.6）: PR 上に当日 `child-review-run` マーカー付きコメントがあれば
+#   skip する判定は child_reviewer.run 側に委ねる（当日マーカーで冪等化）。
+#   ワークフロー側では concurrency で PR 単位の直列化のみ行う。
+#
+# privacy（§8.3）: denylist（BABY_EHON_NAME_DENYLIST）の各値を ::add-mask:: で
+#   マスクしてから Python を起動する。値そのものはログに出さない。
+#   なお child_reviewer は shared/baby.example.js を baby.js に複製して
+#   デフォルト名「あかちゃん」で配信するため、実名は CI に持ち込まない（§7.3 手順2）。
+name: Child Review (こどもレビュワー)
+
+on:
+  # 経路1・3: 作成者からの連鎖起動 / 手動再実行。pr_number を明示的に渡す。
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: "所見対象の PR 番号"
+        type: string
+        required: true
+      dry_run:
+        description: "true なら PR コメント/ラベルを書き込まず生成のみ（§11 step3）"
+        type: boolean
+        default: false
+  # 経路2: 人間 PR。opened / labeled を拾い、job 側の if で
+  # `needs-child-review` ラベルの有無を確認してから処理する。
+  pull_request:
+    types: [opened, labeled]
+
+# 最小権限: PR へのコメントに pull-requests:write、ステージラベル付与に issues:write、
+# チェックアウトに contents:read。
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+# PR 単位で直列化する（同一 PR への多重所見を防ぐ）。実行中ジョブはキャンセルしない。
+concurrency:
+  group: child-review-${{ github.event.inputs.pr_number || github.event.pull_request.number }}
+  cancel-in-progress: false
+
+jobs:
+  child-review:
+    runs-on: ubuntu-latest
+    # 経路2（pull_request）のガード:
+    #   - labeled イベント: 付与されたラベルが `needs-child-review` のときだけ通す。
+    #   - opened イベント: 起票時点で `needs-child-review` ラベルを持つ PR だけ通す。
+    #   - workflow_dispatch（経路1・3）: 常に通す（pr_number を人/作成者が明示している）。
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'pull_request' && github.event.action == 'labeled' &&
+        github.event.label.name == 'needs-child-review') ||
+      (github.event_name == 'pull_request' && github.event.action == 'opened' &&
+        contains(github.event.pull_request.labels.*.name, 'needs-child-review'))
+    env:
+      # dispatch の input、なければ pull_request の PR 番号から解決する。
+      PR_NUMBER: ${{ github.event.inputs.pr_number || github.event.pull_request.number }}
+      # 実運用は書き込みあり（false）。dispatch の input で上書きできる。
+      DRY_RUN: ${{ github.event.inputs.dry_run || 'false' }}
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      OPENAI_BASE_URL: ${{ vars.OPENAI_BASE_URL }}
+      LLM_MODEL_CHILD: ${{ vars.LLM_MODEL_CHILD }}
+      BABY_EHON_NAME_DENYLIST: ${{ secrets.BABY_EHON_NAME_DENYLIST }}
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      GITHUB_REPOSITORY: ${{ github.repository }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up uv (Python パッケージマネージャ)
+        uses: astral-sh/setup-uv@v6
+
+      - name: Install dependencies
+        working-directory: .github/scripts
+        run: uv pip install --system -r requirements.txt
+
+      # Playwright のブラウザバイナリをキャッシュして再 DL を抑える。
+      # playwright のバージョンでキャッシュキーを切り、更新時は自動で再取得される。
+      - name: Cache Playwright browsers
+        id: playwright-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('.github/scripts/requirements.txt') }}
+
+      # Chromium と OS 依存ライブラリを導入する（§7 ブラウザ評価）。
+      # キャッシュヒット時もシステム依存（--with-deps）の取得は安全側で毎回実行する。
+      - name: Install Playwright Chromium
+        run: uv run playwright install --with-deps chromium
+
+      # §8.3: denylist の各値を Actions ログ上でマスクする。
+      # 値は echo せず、::add-mask:: ワークフローコマンドにのみ渡す。空なら何もしない。
+      - name: Mask name denylist in logs
+        env:
+          BABY_EHON_NAME_DENYLIST: ${{ secrets.BABY_EHON_NAME_DENYLIST }}
+        run: |
+          if [ -z "${BABY_EHON_NAME_DENYLIST}" ]; then
+            echo "denylist is empty; nothing to mask"
+            exit 0
+          fi
+          IFS=',' read -ra TOKENS <<< "${BABY_EHON_NAME_DENYLIST}"
+          for token in "${TOKENS[@]}"; do
+            trimmed="$(echo -n "${token}" | xargs)"
+            if [ -n "${trimmed}" ]; then
+              echo "::add-mask::${trimmed}"
+            fi
+          done
+
+      # こどもレビュワー本体（#21 で実装）。PR_NUMBER を env から受け取り、
+      # Playwright でスクショ → Vision モデルで所見 → PR にコメントする。
+      # 当日 `child-review-run` マーカーによる二重起動防止は run 側で行う（§7.6）。
+      - name: Run Child Reviewer
+        working-directory: .github/scripts
+        run: python -m child_reviewer.run
+
+      # スクリーンショットを artifact に保管し、PR コメントからリンク参照する（§7.5）。
+      # 保持は短め（7 日）。所見が無くても artifact 取得で落とさないよう if: always()。
+      - name: Upload screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: child-review-screenshots-pr-${{ env.PR_NUMBER }}
+          path: .github/scripts/child_reviewer/screenshots/
+          retention-days: 7
+          if-no-files-found: ignore
