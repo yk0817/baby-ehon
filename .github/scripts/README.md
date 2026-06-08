@@ -72,6 +72,22 @@ gh variable set LLM_MODEL_DAILY --repo yk0817/baby-ehon --body 'claude-haiku-4-5
 
 > `BABY_EHON_NAME_DENYLIST` の `--body` には**実際の家族名**を入れますが、それはローカルのターミナルで直接実行してください（このリポジトリには値を一切コミットしない）。
 
+## ラベル初期化（冪等）
+
+パイプラインが使うラベル一式（`approved` / `stage:researched` / `stage:implemented` / `stage:child-reviewed` / `claude-proposed` / `needs-child-review` / `automation:skip` / `score-lock`）を、リポジトリに過不足なく揃えます。既存ラベルは色・説明を更新し、未作成なら作成します（**二重作成しません**）。初回セットアップで 1 回流せば十分です。
+
+```bash
+cd .github/scripts
+
+# 何もせず、対象ラベル一覧を表示するだけ（GITHUB 系未設定でも落ちません）
+DRY_RUN=true python setup_labels.py
+
+# 実際に作成 / 更新する（gh ログイン済みのリポジトリに対して）
+GITHUB_REPOSITORY=yk0817/baby-ehon python setup_labels.py
+```
+
+`gh label create --force` を使うため、何度実行しても安全です（無ければ作成・有れば更新）。出力はラベル名・色・説明のみで、個人名やトークン値は出しません。
+
 ## Daily ワークフローの回し方（dispatch）
 
 Daily は `.github/workflows/daily-issue-investigation.yml` で動きます。現フェーズ（P2）は
