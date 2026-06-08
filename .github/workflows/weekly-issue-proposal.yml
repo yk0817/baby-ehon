@@ -1,0 +1,84 @@
+# Proposer（リサーチャー②）— 週 1 で新しい絵本ネタ Issue を発案する。
+#
+# 設計の正: docs/automation/agent-pipeline.md §5（Proposer）/ §5.6（cron・モデル）/
+#           §8.3（ログ漏洩防止）/ §9（ファイル配置）/ §11 step6（検証手順）。
+#
+# このワークフローは Issue #18 のスコープでは workflow_dispatch（手動起動）専用。
+# cron による定期実行（09:00 JST 金曜）は Phase 6 で有効化する。それまでは
+# schedule ブロックをコメントアウトしておく（下記参照）。
+#
+# 入口ゲート: Proposer は Issue を「起票する側」なので approved ラベルは不要。
+# 出口ゲート（実装の approved / PR merge）はパイプライン下流で人間が担う。
+#
+# privacy（§8.3）: denylist（BABY_EHON_NAME_DENYLIST）の各値を ::add-mask:: で
+# マスクしてから Python を起動する。値そのものはログに出さない。
+name: weekly-issue-proposal
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "true なら Issue を起票せず stdout に出すだけ（書き込みなし）"
+        type: boolean
+        default: true
+  # NOTE: cron は Phase 6 で有効化する。それまではコメントアウトのまま。
+  #       0 0 * * 5 = 00:00 UTC 金曜 = 09:00 JST 金曜（週 1 件ペース、§5.6）。
+  # schedule:
+  #   - cron: "0 0 * * 5"
+
+permissions:
+  contents: read
+  issues: write
+
+# 同時実行を直列化する（多重起票・レース防止）。実行中ジョブはキャンセルしない。
+concurrency:
+  group: weekly-proposal
+  cancel-in-progress: false
+
+jobs:
+  propose:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: .github/scripts
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v6
+
+      # .github/scripts/README.md と同方式（uv 管理の環境に requirements.txt を入れる）。
+      - name: Install dependencies
+        run: uv pip install --system -r requirements.txt
+
+
+      # §8.3: denylist の各値を Actions ログ上でマスクする。
+      # 値は echo せず、::add-mask:: ワークフローコマンドにのみ渡す。
+      - name: Mask name denylist in logs
+        env:
+          BABY_EHON_NAME_DENYLIST: ${{ secrets.BABY_EHON_NAME_DENYLIST }}
+        run: |
+          if [ -z "${BABY_EHON_NAME_DENYLIST}" ]; then
+            echo "denylist is empty; nothing to mask"
+            exit 0
+          fi
+          IFS=',' read -ra TOKENS <<< "${BABY_EHON_NAME_DENYLIST}"
+          for token in "${TOKENS[@]}"; do
+            trimmed="$(echo -n "${token}" | xargs)"
+            if [ -n "${trimmed}" ]; then
+              echo "::add-mask::${trimmed}"
+            fi
+          done
+
+      - name: Run Proposer
+        env:
+          DRY_RUN: ${{ inputs.dry_run }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          OPENAI_BASE_URL: ${{ vars.OPENAI_BASE_URL }}
+          LLM_MODEL_PROPOSER: ${{ vars.LLM_MODEL_PROPOSER }}
+          PROPOSED_BACKLOG_MAX: ${{ vars.PROPOSED_BACKLOG_MAX }}
+          BABY_EHON_NAME_DENYLIST: ${{ secrets.BABY_EHON_NAME_DENYLIST }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: python -m issue_proposer.run
