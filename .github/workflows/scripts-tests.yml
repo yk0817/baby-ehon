@@ -35,12 +35,16 @@ jobs:
         uses: astral-sh/setup-uv@v6
 
       # 実行時依存 + pytest / pytest-cov / lint をまとめて入れる。
+      # uv venv を使う（CI のシステム Python は PEP 668 で externally-managed のため
+      # --system では弾かれる）。
       - name: Install dev dependencies
-        run: uv pip install --system -r requirements-dev.txt
+        run: |
+          uv venv
+          uv pip install -r requirements-dev.txt
 
       - name: Run pytest with coverage
         run: >-
-          python -m pytest -q
+          uv run python -m pytest -q
           --cov=common
           --cov=daily_investigator
           --cov=issue_proposer
