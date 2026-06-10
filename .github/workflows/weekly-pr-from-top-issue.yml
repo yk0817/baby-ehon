@@ -95,11 +95,13 @@ jobs:
           done
           echo "denylist のマスク登録が完了しました。"
 
-      # コミットの author/committer 名。bot 名のみを使い、個人名・個人メアドは入れない。
+      # コミットの author/committer をオーナー（yk0817）にする。
+      # GitHub の noreply メール（<id>+<login>@users.noreply.github.com）を使い、
+      # 実メールを公開履歴に残さずに contribution を本人へ帰属させる。
       - name: Configure git identity
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config user.name "yk0817"
+          git config user.email "19640671+yk0817@users.noreply.github.com"
 
       - name: Run Weekly Implementer
         working-directory: .github/scripts
