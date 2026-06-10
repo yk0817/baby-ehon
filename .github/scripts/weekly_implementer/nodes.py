@@ -284,10 +284,18 @@ def generate_patch(state: Mapping[str, Any], *, llm: LLMFn) -> WeeklyState:
     patches = parse_patch_blocks(raw)
     errors = list(state.get("errors", []))
     if not patches:
+        # gpt-5 系の出力截断・形式崩れなどで 0 件のことがある。crash させず、
+        # route_generated → record_failure_comment で graceful に終わらせる。
         errors.append(
             "generate_patch: LLM 応答からファイルブロックを抽出できませんでした"
+            f"（応答長 {len(raw or '')} 文字）"
         )
     return {"proposed_patches": patches, "errors": errors}
+
+
+def route_generated(state: Mapping[str, Any]) -> str:
+    """生成パッチが空なら failure へ、あれば通常フローへ。"""
+    return "ok" if state.get("proposed_patches") else "empty"
 
 
 # パッチブロックの区切り: `=== path: <相対パス> ===` の次行以降がそのファイルの内容。

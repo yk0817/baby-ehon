@@ -108,7 +108,11 @@ def build_graph(
     )
     graph.add_edge("gather_context", "plan_change")
     graph.add_edge("plan_change", "generate_patch")
-    graph.add_edge("generate_patch", "privacy_check")
+    graph.add_conditional_edges(
+        "generate_patch",
+        nodes.route_generated,
+        {"empty": "record_failure_comment", "ok": "privacy_check"},
+    )
     graph.add_conditional_edges(
         "privacy_check",
         nodes.route_privacy,

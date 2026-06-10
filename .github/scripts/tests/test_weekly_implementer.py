@@ -333,6 +333,19 @@ class TestRecordFailureComment:
         assert "name_placeholder" in body
         assert any("privacy violation" in e for e in result["errors"])
 
+
+# --- route_generated（空パッチで crash させず failure へ） --------------------
+
+
+class TestRouteGenerated:
+    def test_empty_patches_route_to_failure(self):
+        assert nodes.route_generated({"proposed_patches": []}) == "empty"
+        assert nodes.route_generated({}) == "empty"
+
+    def test_nonempty_patches_route_ok(self):
+        state = {"proposed_patches": [{"path": "a", "new_contents": "x"}]}
+        assert nodes.route_generated(state) == "ok"
+
     def test_dry_run_does_not_post(self):
         # Arrange
         class FakeIO:
