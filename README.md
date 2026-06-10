@@ -95,6 +95,23 @@ baby-ehon/
 
 このリポジトリは公開リポジトリ。**個人名・顔写真・住所等を含む情報はリポジトリにコミットしない**。詳細は [`CLAUDE.md`](CLAUDE.md) を参照。
 
+## 自動改善パイプライン（実験的）
+
+絵本の改善を **AI エージェントが調査・発案 → 実装 → 1 歳児視点でレビュー**し、最後は人間が PR を merge する仕組みを GitHub Actions で回しています（公開リポなので生成物に個人情報は残しません）。
+
+```
+リサーチ（調査・発案）→ 作成（Draft PR）→ こども（所見）→ 人間が承認・merge
+```
+
+| 役 | すること |
+|---|---|
+| リサーチャー① Daily | 既存 Issue を調査・採点（`claude-score` 付与） |
+| リサーチャー② Proposer | 新しい絵本・機能を発案して Issue 自動起票 |
+| 作成者 Weekly | `approved` 付き最上位 Issue を実装して **Draft PR** |
+| こども Reviewer | Draft PR を実ブラウザで触り発達視点で所見（**承認はしない**） |
+
+人間ゲートは二段（入口＝Issue に `approved`／出口＝PR を merge）。設計の詳細は [`docs/automation/agent-pipeline.md`](docs/automation/agent-pipeline.md)、運用手順は [`.github/scripts/README.md`](.github/scripts/README.md) を参照。
+
 ## 開発メモ
 
 - 編集時には `.claude/settings.json` の PostToolUse hook が走り、コード変更時に **README 更新の要否を Claude にリマインド** してくれる
