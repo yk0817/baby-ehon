@@ -20,10 +20,9 @@
 ## 前提
 
 - **uv**（Python パッケージマネージャ）。導入は [astral.sh/uv](https://docs.astral.sh/uv/)
-- リポジトリ Secrets（**人間が登録**。Claude は触れません）
-  - `OPENAI_API_KEY` — LLM 呼び出し用の API キー
-  - `OPENAI_BASE_URL` —（任意）OpenAI 互換でないエンドポイントを使う場合の base_url（§3.1）
-  - `BABY_EHON_NAME_DENYLIST` — 検査で弾く個人名のカンマ区切り（**値はコード・ログに残さない**）
+- リポジトリ Secrets / Variables（**人間が登録**。Claude は触れません。詳細は下表）
+  - Secrets: `OPENAI_API_KEY` / `BABY_EHON_NAME_DENYLIST`
+  - Variables: `LLM_MODEL_DAILY/PROPOSER/CREATOR/CHILD`（**必須**・既定なし）, `OPENAI_BASE_URL`（実質必須）, `PROPOSED_BACKLOG_MAX`（任意）
 - ラベル: `approved` / `stage:researched` / `stage:implemented` / `stage:child-reviewed` / `claude-proposed` / `needs-child-review` / `automation:skip` / `score-lock`
 
 ## セットアップ（ローカル）
@@ -51,26 +50,37 @@ GitHub の **Settings → Secrets and variables → Actions** で登録します
 | `OPENAI_API_KEY` | 必須 | LLM 呼び出し用 API キー。利用する OpenAI（互換）提供元から発行 |
 | `BABY_EHON_NAME_DENYLIST` | 必須 | 検査で弾く家族名のカンマ区切り。**公開リポなので必ず Secret**。値はコード・ログに残さない（ワークフローが起動時に `::add-mask::` でログマスク、§8.3） |
 
-### Variables（任意・平文。機密ではない設定だけ）
+### Variables（平文・機密ではない設定）
+
+役ごとのモデルは `common/llm.py` が **env から必須解決**します（コードに既定モデル名を持ちません＝未設定だと実行時エラー）。そのため `LLM_MODEL_*` は実運用では**必須**です。
 
 | 名前 | 必須 | 内容 |
 |---|---|---|
-| `OPENAI_BASE_URL` | 任意 | OpenAI 互換でないエンドポイントを使う場合の base_url（§3.1） |
-| `LLM_MODEL_DAILY` | 任意 | Daily の使用モデル。未設定ならコード側の既定（例 `claude-haiku-4-5`、§4.5） |
+| `LLM_MODEL_DAILY` | **必須** | Daily（調査・採点）のモデル。例 `gpt-4o-mini`（軽量ティア、§4.5） |
+| `LLM_MODEL_PROPOSER` | **必須** | Proposer（発案）のモデル。例 `gpt-4o-mini` |
+| `LLM_MODEL_CREATOR` | **必須** | Weekly（コード生成）のモデル。例 `gpt-5`（コードは上位ティア推奨。`gpt-5.x-codex` 系も可） |
+| `LLM_MODEL_CHILD` | **必須** | こども（**Vision 必須**）のモデル。例 `gpt-4o-mini` |
+| `OPENAI_BASE_URL` | 実質必須 | OpenAI SDK の base_url。実 OpenAI なら `https://api.openai.com/v1`。**未設定（空文字）だと SDK が空 URL を読んで `UnsupportedProtocol` で失敗するため、必ず設定する** |
+| `PROPOSED_BACKLOG_MAX` | 任意 | 未対応 `claude-proposed` の上限。未設定なら既定 `3` |
+
+> モデル名は使うエンドポイント次第です（実 OpenAI なら `gpt-4o-mini` / `gpt-5` 等、Anthropic 互換プロキシなら `claude-haiku-4-5` / `claude-sonnet-4-6` 等を `OPENAI_BASE_URL` とセットで指定）。
 
 ### `gh secret` / `gh variable` での登録例
 
 ```bash
-# Secrets（値はプロンプトで貼るか、安全なソースから渡す。履歴に残さない）
+# Secrets（値は対話入力で貼る。履歴に残さない。op から取るなら `op read ... | gh secret set NAME`）
 gh secret set OPENAI_API_KEY --repo yk0817/baby-ehon
-gh secret set BABY_EHON_NAME_DENYLIST --repo yk0817/baby-ehon --body '<家族の名前をカンマ区切り>'
+gh secret set BABY_EHON_NAME_DENYLIST --repo yk0817/baby-ehon   # 家族名をカンマ区切りで対話入力
 
-# Variables（任意）
-gh variable set OPENAI_BASE_URL --repo yk0817/baby-ehon --body 'https://api.example.com/v1'
-gh variable set LLM_MODEL_DAILY --repo yk0817/baby-ehon --body 'claude-haiku-4-5'
+# Variables（モデル名・base_url は機密でないので値ごと指定でよい）
+gh variable set OPENAI_BASE_URL    --repo yk0817/baby-ehon --body 'https://api.openai.com/v1'
+gh variable set LLM_MODEL_DAILY    --repo yk0817/baby-ehon --body 'gpt-4o-mini'
+gh variable set LLM_MODEL_PROPOSER --repo yk0817/baby-ehon --body 'gpt-4o-mini'
+gh variable set LLM_MODEL_CREATOR  --repo yk0817/baby-ehon --body 'gpt-5'
+gh variable set LLM_MODEL_CHILD    --repo yk0817/baby-ehon --body 'gpt-4o-mini'
 ```
 
-> `BABY_EHON_NAME_DENYLIST` の `--body` には**実際の家族名**を入れますが、それはローカルのターミナルで直接実行してください（このリポジトリには値を一切コミットしない）。
+> `BABY_EHON_NAME_DENYLIST` は `gh secret set <名前>` を引数なしで実行すると値を対話入力でき、シェル履歴に残りません（公開リポジトリには値を一切コミットしない）。
 
 ## ラベル初期化（冪等）
 
@@ -87,6 +97,11 @@ GITHUB_REPOSITORY=yk0817/baby-ehon python setup_labels.py
 ```
 
 `gh label create --force` を使うため、何度実行しても安全です（無ければ作成・有れば更新）。出力はラベル名・色・説明のみで、個人名やトークン値は出しません。
+
+## コミット / 起票の名義
+
+- **Weekly が作る差分コミット**は、ワークフローの git identity 設定によりオーナー（`yk0817` + GitHub noreply メール）名義になります。contribution graph にも本人として乗ります
+- **Issue 起票・PR/Issue コメント・PR 作成者**は `GITHUB_TOKEN` 経由のため `github-actions[bot]` 名義です。これらも本人名義にしたい場合は、`yk0817` の **PAT** を Secret 登録し各ワークフローで使う必要があります（既定では未使用）
 
 ## Daily ワークフローの回し方（dispatch）
 
