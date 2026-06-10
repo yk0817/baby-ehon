@@ -203,3 +203,27 @@ class TestSelfScoreGate:
     def test_routing_helper(self):
         assert nodes.route_self_score({"accepted": True}) == "accept"
         assert nodes.route_self_score({"accepted": False}) == "drop"
+
+
+# --- PROPOSED_BACKLOG_MAX の解決（回帰: 空文字 Variable で int("") を防ぐ） ----
+
+
+class TestResolveBacklogMax:
+    def test_empty_env_falls_back_to_default(self):
+        # 未設定の GitHub Variable は "" で渡る
+        from issue_proposer import run
+
+        assert (
+            run._resolve_backlog_max({"PROPOSED_BACKLOG_MAX": ""})
+            == nodes.DEFAULT_BACKLOG_MAX
+        )
+
+    def test_absent_env_falls_back_to_default(self):
+        from issue_proposer import run
+
+        assert run._resolve_backlog_max({}) == nodes.DEFAULT_BACKLOG_MAX
+
+    def test_numeric_env_is_used(self):
+        from issue_proposer import run
+
+        assert run._resolve_backlog_max({"PROPOSED_BACKLOG_MAX": "5"}) == 5
