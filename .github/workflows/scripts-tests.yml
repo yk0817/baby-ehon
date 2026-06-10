@@ -1,0 +1,49 @@
+# 自動化スクリプト（.github/scripts/**）のテスト CI。
+# 設計の正: docs/automation/agent-pipeline.md §11（検証手順）。
+#
+# `.github/scripts/**` を触る PR で pytest を走らせ、共通基盤・各役のロジックが
+# 壊れていないことを merge 前に保証する（§24 / §11 step の CI 化）。
+# 外部ネットワーク・LLM・Secrets には依存しない（テストは注入/スタブで完結）。
+name: scripts-tests (自動化スクリプトのテスト)
+
+on:
+  pull_request:
+    paths:
+      - ".github/scripts/**"
+  workflow_dispatch:
+
+# テストのみ。書き込み権限は不要。
+permissions:
+  contents: read
+
+# 同一 PR の再 push では古いランをキャンセルして無駄を省く。
+concurrency:
+  group: scripts-tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pytest:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: .github/scripts
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up uv (Python パッケージマネージャ)
+        uses: astral-sh/setup-uv@v6
+
+      # 実行時依存 + pytest / pytest-cov / lint をまとめて入れる。
+      - name: Install dev dependencies
+        run: uv pip install --system -r requirements-dev.txt
+
+      - name: Run pytest with coverage
+        run: >-
+          python -m pytest -q
+          --cov=common
+          --cov=daily_investigator
+          --cov=issue_proposer
+          --cov=weekly_implementer
+          --cov=child_reviewer
+          --cov-report=term-missing
