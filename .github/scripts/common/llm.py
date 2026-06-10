@@ -169,10 +169,13 @@ def chat(
         budget.check()
 
     messages = build_messages(system, user, image_urls=image_urls)
+    # OpenAI 現行チャットモデルの標準は max_completion_tokens。
+    # 新しめのモデル（5 系・o 系）は max_tokens を 400 で拒否する（4o 系は両対応）ため、
+    # 全モデルで通る max_completion_tokens に統一する。
     response = client.chat.completions.create(
         model=model,
         messages=messages,
-        max_tokens=max_tokens,
+        max_completion_tokens=max_tokens,
     )
 
     if budget is not None:

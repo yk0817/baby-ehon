@@ -144,11 +144,13 @@ class TestChat:
         assert text == "hi"
         assert client.calls[0]["model"] == "model-x"
 
-    def test_passes_max_tokens(self):
+    def test_passes_max_completion_tokens(self):
+        # gpt-5 系も通るよう、API へは max_completion_tokens で渡す
         env = {"LLM_MODEL_DAILY": "m"}
         client = _FakeClient()
         llm.chat(client, role="daily", system="s", user="u", max_tokens=123, env=env)
-        assert client.calls[0]["max_tokens"] == 123
+        assert client.calls[0]["max_completion_tokens"] == 123
+        assert "max_tokens" not in client.calls[0]
 
     def test_accumulates_budget_from_usage(self):
         env = {"LLM_MODEL_DAILY": "m"}
