@@ -83,6 +83,17 @@ def _resolve_chat(config: RunConfig) -> Callable[..., str]:
     return llm.chat
 
 
+def _build_client(config: RunConfig, env: Mapping[str, str]) -> Any | None:
+    """実 ``llm.chat`` を使うときだけ OpenAI クライアントを生成する。
+
+    スタブ経路（dry-run かつ API キー無し）では chat がクライアントを使わないため
+    ``None`` を返す。それ以外は ``OPENAI_API_KEY`` からクライアントを構築する。
+    """
+    if config.dry_run and not config.has_api_key:
+        return None
+    return llm.create_client(env)
+
+
 @dataclass
 class _StubIssue:
     """オフライン dry-run 用のダミー Issue（GitHub 未接続でも回す）。"""
@@ -136,6 +147,7 @@ def process_issue(
     config: RunConfig,
     io: Any | None,
     chat: Callable[..., str],
+    client: Any = None,
     role_prompts: Any,
     env: Mapping[str, str],
     now: datetime | None = None,
@@ -161,7 +173,9 @@ def process_issue(
         nodes.feature_proposal,
         nodes.score_priority,
     ):
-        state.update(node(state, chat=chat, client=None, env=env, prompts=role_prompts))
+        state.update(
+            node(state, chat=chat, client=client, env=env, prompts=role_prompts)
+        )
 
     state.update(nodes.format_comment(state, now=now))
     state.update(nodes.privacy_check(state, denylist=config.denylist, env=env))
@@ -182,6 +196,7 @@ def main(
     source = dict(os.environ if env is None else env)
     config = load_config(source)
     chat = _resolve_chat(config)
+    client = _build_client(config, source)
     role_prompts = prompts.load(env=source)
     io = _build_io(config, source)
 
@@ -201,6 +216,7 @@ def main(
             config=config,
             io=io,
             chat=chat,
+            client=client,
             role_prompts=role_prompts,
             env=source,
         )

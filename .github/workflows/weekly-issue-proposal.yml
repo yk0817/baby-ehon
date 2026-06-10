@@ -50,7 +50,10 @@ jobs:
 
       # .github/scripts/README.md と同方式（uv 管理の環境に requirements.txt を入れる）。
       - name: Install dependencies
-        run: uv pip install --system -r requirements.txt
+        working-directory: .github/scripts
+        run: |
+          uv venv
+          uv pip install -r requirements.txt
 
 
       # §8.3: denylist の各値を Actions ログ上でマスクする。
@@ -72,6 +75,7 @@ jobs:
           done
 
       - name: Run Proposer
+        working-directory: .github/scripts
         env:
           DRY_RUN: ${{ inputs.dry_run }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
@@ -81,4 +85,4 @@ jobs:
           BABY_EHON_NAME_DENYLIST: ${{ secrets.BABY_EHON_NAME_DENYLIST }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_REPOSITORY: ${{ github.repository }}
-        run: python -m issue_proposer.run
+        run: uv run python -m issue_proposer.run

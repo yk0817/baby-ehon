@@ -416,3 +416,44 @@ class TestPromptsModule:
         # Assert: daily 役の system が読めている
         assert loaded.role == "daily"
         assert loaded.system
+
+
+# --- run.process_issue が LLM クライアントを各ノードへ転送する（回帰） ---------
+
+
+class TestProcessIssueForwardsClient:
+    """dry-run + API キー有りで client=None 固定だと None.chat になる回帰の防止。"""
+
+    def test_forwards_client_to_llm_nodes(self):
+        # Arrange
+        from daily_investigator import prompts, run
+
+        captured: dict = {}
+
+        def spy_chat(client, **kwargs):
+            captured["client"] = client
+            return "ok"
+
+        sentinel = object()
+        config = run.RunConfig(
+            dry_run=True,
+            force=False,
+            only_issue=1,
+            has_api_key=True,
+            repo=None,
+            denylist=(),
+        )
+
+        # Act
+        run.process_issue(
+            run._StubIssue(number=1),
+            config=config,
+            io=None,
+            chat=spy_chat,
+            client=sentinel,
+            role_prompts=prompts.load(),
+            env={},
+        )
+
+        # Assert: ノードに渡ったのは None ではなく与えた client
+        assert captured["client"] is sentinel
