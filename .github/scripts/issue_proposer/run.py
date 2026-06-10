@@ -179,6 +179,16 @@ def _gather_issue_context(io: Any) -> tuple[list[str], list[str], int]:
 # --- main --------------------------------------------------------------------
 
 
+def _resolve_backlog_max(env: Mapping[str, str]) -> int:
+    """``PROPOSED_BACKLOG_MAX`` を解決する。
+
+    未設定の GitHub Variable は空文字 "" で渡るため、空/非数値なら既定値
+    （``nodes.DEFAULT_BACKLOG_MAX``）にフォールバックする（``int("")`` 防止）。
+    """
+    raw = env.get(BACKLOG_MAX_ENV, "").strip()
+    return int(raw) if raw.isdigit() else nodes.DEFAULT_BACKLOG_MAX
+
+
 def main(env: Mapping[str, str] | None = None) -> int:
     """Proposer を 1 回実行する。戻り値はプロセス終了コード。"""
     source = dict(os.environ if env is None else env)
@@ -187,7 +197,7 @@ def main(env: Mapping[str, str] | None = None) -> int:
     has_api_key = bool(source.get(llm_mod.API_KEY_ENV, "").strip())
     offline = dry_run and not has_api_key
 
-    backlog_max = int(source.get(BACKLOG_MAX_ENV, str(nodes.DEFAULT_BACKLOG_MAX)))
+    backlog_max = _resolve_backlog_max(source)
     denylist = privacy.load_denylist(source)
     today = today_jst()
     repo_root = _repo_root()
