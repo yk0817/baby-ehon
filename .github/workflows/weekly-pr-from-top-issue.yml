@@ -74,7 +74,9 @@ jobs:
 
       - name: Install dependencies
         working-directory: .github/scripts
-        run: uv pip install --system -r requirements.txt
+        run: |
+          uv venv
+          uv pip install -r requirements.txt
 
       # denylist 各値を Actions ログ上でマスク登録する（§8.3）。
       # 値そのものは出力せず、::add-mask:: 登録のみ行う。空なら何もしない。
@@ -101,4 +103,4 @@ jobs:
 
       - name: Run Weekly Implementer
         working-directory: .github/scripts
-        run: python -m weekly_implementer.run
+        run: uv run python -m weekly_implementer.run
