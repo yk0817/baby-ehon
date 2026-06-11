@@ -63,11 +63,28 @@ def _stub_generate_llm(_system: str, _user: str) -> str:
     return "（DRY_RUN スタブ: ファイルブロックを生成しません）"
 
 
-def _build_llm(env: Mapping[str, str]) -> LLMFn:
-    """実 LLM 呼び出し（creator 役・prompts.py の文言を system に使う）。"""
+# generate_patch は全ファイル全文を出すうえ、gpt-5 系は推論トークンも
+# max_completion_tokens に含むため、既定 4096 では本文が空/截断になりやすい。
+# 役ごとに十分な上限を与える（plan は計画のみなので控えめ）。
+PLAN_MAX_TOKENS = 8000
+GENERATE_MAX_TOKENS = 32000
+
+
+def _build_llm(
+    env: Mapping[str, str],
+    *,
+    client: Any | None = None,
+    budget: Any | None = None,
+    max_tokens: int = llm_mod.DEFAULT_MAX_TOKENS,
+) -> LLMFn:
+    """実 LLM 呼び出し（creator 役・prompts.py の文言を system に使う）。
+
+    ``client`` / ``budget`` を渡せば共有する（plan と generate で 1 接続・1 予算）。
+    ``max_tokens`` は 1 呼び出しの出力上限（generate は大きめにする）。
+    """
     role_prompts = prompts.load(env=env)
-    client = llm_mod.create_client(env=env)
-    budget = llm_mod.RunBudget()
+    client = client if client is not None else llm_mod.create_client(env=env)
+    budget = budget if budget is not None else llm_mod.RunBudget()
 
     persona = role_prompts.persona.strip()
     base_system = role_prompts.system
@@ -81,6 +98,7 @@ def _build_llm(env: Mapping[str, str]) -> LLMFn:
             role=ROLE,
             system=system,
             user=user,
+            max_tokens=max_tokens,
             budget=budget,
             env=env,
         )
@@ -248,8 +266,21 @@ def main(env: Mapping[str, str] | None = None) -> int:
         print("=== [OFFLINE DRY_RUN] LLM/GitHub を使わずスタブで完走します ===")
         plan_llm, generate_llm = _stub_plan_llm, _stub_generate_llm
     else:
-        call = _build_llm(source)
-        plan_llm, generate_llm = call, call
+        # client / budget を共有しつつ、generate だけ出力上限を大きくする。
+        shared_client = llm_mod.create_client(env=source)
+        shared_budget = llm_mod.RunBudget()
+        plan_llm = _build_llm(
+            source,
+            client=shared_client,
+            budget=shared_budget,
+            max_tokens=PLAN_MAX_TOKENS,
+        )
+        generate_llm = _build_llm(
+            source,
+            client=shared_client,
+            budget=shared_budget,
+            max_tokens=GENERATE_MAX_TOKENS,
+        )
 
     state = _gather_issue_state(io)
 
