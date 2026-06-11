@@ -1,0 +1,17 @@
+.animals {
+  position: absolute;
+  top: 20%;
+  left: 50%;
+  translate: -50% 0;
+  display: flex;
+  gap: 24px;
+}
+.animal img {
+  width: clamp(120px, 22vw, 240px);
+  height: auto;
+  cursor: pointer;
+  border-radius: 20px;
+  border: 4px solid var(--ink);
+  background: #fff;
+  box-shadow: 0 6px 0 var(--ink);
+}
