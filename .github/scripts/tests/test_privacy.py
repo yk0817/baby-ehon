@@ -44,6 +44,30 @@ class TestScanText:
         assert violations
         assert all("ろく" not in v.message for v in violations)
 
+    # --- 部分文字列の過検出を弾く（名前は LLM 非公開なので偶然一致が大半） ----
+
+    def test_substring_inside_longer_hiragana_word_is_not_flagged(self):
+        # 「やま」は「やまみち」(山道) の部分文字列だが名前ではない
+        violations = privacy.scan_text("やまみち を あるく", denylist=("やま",))
+        assert all(v.kind != "denylist" for v in violations)
+
+    def test_common_word_substring_is_not_flagged(self):
+        # 「はな」は「はなび」(花火) の部分文字列
+        violations = privacy.scan_text("はなび が きれい", denylist=("はな",))
+        assert all(v.kind != "denylist" for v in violations)
+
+    def test_name_with_honorific_is_flagged(self):
+        violations = privacy.scan_text("はなちゃん おはよう", denylist=("はな",))
+        assert any(v.kind == "denylist" for v in violations)
+
+    def test_name_followed_by_punctuation_is_flagged(self):
+        violations = privacy.scan_text("やあ たろう、げんき？", denylist=("たろう",))
+        assert any(v.kind == "denylist" for v in violations)
+
+    def test_name_at_string_end_is_flagged(self):
+        violations = privacy.scan_text("よんで たろう", denylist=("たろう",))
+        assert any(v.kind == "denylist" for v in violations)
+
 
 class TestAssertNamePlaceholder:
     def test_ok_when_vocative_uses_placeholder(self):
