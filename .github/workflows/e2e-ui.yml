@@ -1,0 +1,89 @@
+# 絵本本体（HTML/CSS/JS）の E2E UI テストを実ブラウザで自動実行する CI。
+# 設計の正: docs/automation/agent-pipeline.md（E2E UI テスト milestone）/ Issue #54。
+#
+# 絵本ファイル（各ブック・shared・index.html・shelf.css）や e2e/ を触る PR で
+# pytest-playwright を走らせ、UI の回帰を merge 前に検知する。
+# 失敗時は screenshot / video / trace を artifact に保存して原因調査できるようにする。
+#
+# 依存インストールは uv venv 方式（CI のシステム Python は PEP 668 で
+# externally-managed のため --system では弾かれる。scripts-tests.yml と同じ方針）。
+#
+# baby.js の seed（shared/baby.example.js → shared/baby.js の複製）は #53 の
+# conftest fixture が行う前提。ワークフロー側では seed を重複させない。
+# E2E は LLM / Secrets に非依存（getUserMedia 等はテスト側でモックされる前提）なので
+# env も不要。
+name: E2E UI (絵本の E2E UI テスト)
+
+on:
+  # 絵本本体・shared・本棚・e2e を触る PR で起動する。
+  pull_request:
+    paths:
+      - "hikouki/**"
+      - "densha/**"
+      - "kuruma/**"
+      - "otenki/**"
+      - "yorunosora/**"
+      - "shared/**"
+      - "index.html"
+      - "shelf.css"
+      - "e2e/**"
+  # 手動再実行用。
+  workflow_dispatch:
+
+# テストのみ。書き込み権限は不要。
+permissions:
+  contents: read
+
+# 同一 ref の再 push では古いランをキャンセルして無駄を省く。
+concurrency:
+  group: e2e-ui-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up uv (Python パッケージマネージャ)
+        uses: astral-sh/setup-uv@v6
+
+      # e2e/ 配下の依存を uv venv に入れる（--system は使わない）。
+      - name: Install dependencies
+        working-directory: e2e
+        run: |
+          uv venv
+          uv pip install -r requirements.txt
+
+      # Playwright のブラウザバイナリをキャッシュして再 DL を抑える。
+      # requirements.txt（playwright のバージョンを含む）でキャッシュキーを切る。
+      - name: Cache Playwright browsers
+        id: playwright-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('e2e/requirements.txt') }}
+
+      # Chromium と OS 依存ライブラリを導入する。
+      # キャッシュヒット時もシステム依存（--with-deps）の取得は安全側で毎回実行する。
+      - name: Install Playwright Chromium
+        working-directory: e2e
+        run: uv run playwright install --with-deps chromium
+
+      # E2E 本体。baby.js の seed は #53 の conftest fixture が担う。
+      - name: Run E2E tests
+        working-directory: e2e
+        run: uv run python -m pytest -q
+
+      # 失敗時の調査用に Playwright の出力（screenshot / video / trace）を保管する。
+      # テストが成功して出力が無い場合は if-no-files-found: ignore で落とさない。
+      # 保持は短め（7 日）。所見が無くても artifact 取得で落とさないよう if: always()。
+      - name: Upload Playwright artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-ui-artifacts
+          path: e2e/test-results/
+          retention-days: 7
+          if-no-files-found: ignore
