@@ -64,6 +64,41 @@ def load_denylist(env: Mapping[str, str] | None = None) -> tuple[str, ...]:
     return tuple(sorted(names))
 
 
+# 名前トークン判定で「直後がこれらの敬称なら名前」とみなす（平仮名でも許容）。
+_HONORIFICS = ("ちゃん", "ちゃま", "ちゃ", "くん", "きゅん", "さん", "さま")
+
+
+def _is_hiragana(ch: str) -> bool:
+    # 平仮名ブロック U+3040–U+309F
+    return bool(ch) and "぀" <= ch <= "ゟ"
+
+
+def _name_appears_as_token(text: str, name: str) -> bool:
+    """denylist 名が「名前トークン」として現れるか（部分文字列の過検出を抑える）。
+
+    denylist の値は LLM に渡していない（Secret）ため、生成テキストに出る一致は
+    多くが偶然の部分文字列（例: ``はな`` が ``はなび``＝花火 に、``やま`` が
+    ``やまみち``＝山道 に一致）。そこで **直後が平仮名で語が連続する場合は名前と
+    みなさない**。ただし直後が敬称（ちゃん / くん / さん 等）なら名前とみなす。
+    直前方向は制限しない（``わたしはたろう`` のような取りこぼしを避けるため）。
+    """
+    low_text = text.lower()
+    low_name = name.lower()
+    if not low_name:
+        return False
+    start = 0
+    while True:
+        idx = low_text.find(low_name, start)
+        if idx == -1:
+            return False
+        end = idx + len(low_name)
+        after = low_text[end] if end < len(low_text) else ""
+        following = low_text[end : end + 4]
+        if not _is_hiragana(after) or any(following.startswith(h) for h in _HONORIFICS):
+            return True
+        start = idx + 1
+
+
 def scan_text(text: str, denylist: Sequence[str] = ()) -> list[Violation]:
     """テキストから hard-banned パターンと denylist 名を検出する。"""
     violations: list[Violation] = []
@@ -75,8 +110,7 @@ def scan_text(text: str, denylist: Sequence[str] = ()) -> list[Violation]:
     if _ADDRESS_RE.search(text):
         violations.append(Violation("address", "住所らしき文字列を検出"))
 
-    lowered = text.lower()
-    if any(name.lower() in lowered for name in denylist if name):
+    if any(_name_appears_as_token(text, name) for name in denylist if name):
         violations.append(
             Violation("denylist", "denylist の個人名を検出（値はマスク）")
         )
