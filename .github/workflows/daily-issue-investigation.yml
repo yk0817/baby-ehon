@@ -20,10 +20,10 @@ on:
         type: string
         default: ""
 
-  # P6 で有効化（§11 step9 / §13 PR-10）。
+  # P6 で有効化済み（§11 step9 / §13 PR-10）。
   # cron: 0 0 */2 * * = 00:00 UTC・2 日ごと = 09:00 JST 隔日（§4.5）。
-  # schedule:
-  #   - cron: "0 0 */2 * *"
+  schedule:
+    - cron: "0 0 */2 * *"
 
 # 最小権限: Issue へのコメント/ラベル付与に issues:write、チェックアウトに contents:read。
 permissions:

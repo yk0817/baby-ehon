@@ -21,10 +21,10 @@ on:
         description: "true なら Issue を起票せず stdout に出すだけ（書き込みなし）"
         type: boolean
         default: true
-  # NOTE: cron は Phase 6 で有効化する。それまではコメントアウトのまま。
+  # cron は Phase 6 で有効化済み。
   #       0 0 * * 5 = 00:00 UTC 金曜 = 09:00 JST 金曜（週 1 件ペース、§5.6）。
-  # schedule:
-  #   - cron: "0 0 * * 5"
+  schedule:
+    - cron: "0 0 * * 5"
 
 permissions:
   contents: read
