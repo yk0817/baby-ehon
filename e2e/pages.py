@@ -7,7 +7,10 @@
 - 各絵本 ``<book>/index.html``: ページは ``section.page``（``data-scene`` 付き）。表示中は
   ``.page.is-active``。ナビは ``.nav-btn--prev`` / ``.nav-btn--next`` / ``.lock-btn``、
   ドットは ``#dots .dot``。
-- ページ送りは: 次へボタン / スワイプ（touchstart→touchend で 80px 超） / ``ArrowRight``。
+- ページ送りは: 次へボタン / スワイプ（touchstart→touchend で 80px 超） / ``ArrowRight`` /
+  自動進行（``AUTO_ADVANCE_MS`` = 12000ms。実時間待ちを避けるため ``advance_by_auto`` は
+  Playwright の ``clock`` で早送りする）。
+- ``scene_order`` で全ページの ``data-scene`` を DOM 順に取得できる。
 - ロックは ``.lock-btn`` を 1 回押すとロック、ロック中は長押し（``LOCK_UNLOCK_MS`` = 1500ms）
   で解除（``shared/ehon.js`` 参照）。
 """
@@ -22,6 +25,9 @@ BOOK_SLUGS: tuple[str, ...] = ("hikouki", "densha", "kuruma", "otenki", "yorunos
 #: ロック解除に必要な長押し時間（ehon.js の LOCK_UNLOCK_MS）。余裕を持って待つ。
 _LOCK_UNLOCK_MS = 1500
 _LOCK_HOLD_MS = _LOCK_UNLOCK_MS + 300
+
+#: 自動進行の間隔（ehon.js の AUTO_ADVANCE_MS）。実時間で待つと遅いので clock で送る。
+AUTO_ADVANCE_MS = 12000
 
 
 def open_shelf(page: Any, base_url: str) -> Any:
@@ -87,7 +93,11 @@ def advance_by_swipe(page: Any) -> None:
     """
     page.evaluate("""() => {
           const fire = (type, x) => {
-            const t = { clientX: x, clientY: 400, identifier: 0 };
+            // Chromium は changedTouches に本物の Touch インスタンスを要求する
+            // （plain object だと TouchEvent 構築時に TypeError）。
+            const t = new Touch({
+              identifier: 0, target: document.body, clientX: x, clientY: 400,
+            });
             const ev = new TouchEvent(type, {
               bubbles: true, cancelable: true,
               changedTouches: [t], touches: type === 'touchend' ? [] : [t],
@@ -98,6 +108,26 @@ def advance_by_swipe(page: Any) -> None:
           fire('touchend', 100);
         }""")
     page.wait_for_timeout(200)
+
+
+def scene_order(page: Any) -> list[str]:
+    """ブック内の全ページ（``section.page``）の ``data-scene`` を DOM 順で返す。"""
+    return page.eval_on_selector_all(
+        "section.page", "els => els.map(e => e.dataset.scene)"
+    )
+
+
+def advance_by_auto(page: Any) -> None:
+    """自動進行（``AUTO_ADVANCE_MS``）を 1 回ぶん進める。
+
+    実時間で 12 秒待つ代わりに Playwright の ``clock`` を早送りする。呼び出し前に
+    ``page.clock.install()`` を済ませ、その後に ``open_book`` していること。
+
+    ``fast_forward`` は仮想時刻を進めつつ満期の ``setInterval`` を同期的に発火させ、
+    ``ehon.js`` の ``goTo``（``is-active`` クラスの付け替え）も同期完了してから戻る。
+    そのため戻り後すぐに DOM を読んでよい（追加の待機は不要）。
+    """
+    page.clock.fast_forward(AUTO_ADVANCE_MS)
 
 
 def is_locked(page: Any) -> bool:
