@@ -4,6 +4,11 @@
 node_modules/
 *.log
 
+# Python（E2E テスト）
+__pycache__/
+.pytest_cache/
+*.pyc
+
 # 個人設定（公開リポジトリに個人名を含めない）
 shared/baby.js
 

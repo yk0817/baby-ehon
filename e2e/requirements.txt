@@ -1,0 +1,6 @@
+# baby-ehon E2E テスト依存（npm は使わず child-review と同じ Python+Playwright に揃える）
+# 実行例:
+#   uv run --with pytest-playwright playwright install chromium
+#   uv run --with pytest-playwright python -m pytest e2e/ -q
+pytest>=8.0
+pytest-playwright>=0.5
