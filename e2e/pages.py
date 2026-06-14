@@ -17,7 +17,14 @@ from __future__ import annotations
 from typing import Any
 
 #: 本棚に並ぶ絵本のディレクトリ名（href）。README のラインナップと一致。
-BOOK_SLUGS: tuple[str, ...] = ("hikouki", "densha", "kuruma", "otenki", "yorunosora")
+BOOK_SLUGS: tuple[str, ...] = (
+    "hikouki",
+    "densha",
+    "kuruma",
+    "otenki",
+    "yorunosora",
+    "doubutsu",
+)
 
 #: ロック解除に必要な長押し時間（ehon.js の LOCK_UNLOCK_MS）。余裕を持って待つ。
 _LOCK_UNLOCK_MS = 1500

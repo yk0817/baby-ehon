@@ -23,6 +23,7 @@ on:
       - "kuruma/**"
       - "otenki/**"
       - "yorunosora/**"
+      - "doubutsu/**"
       - "shared/**"
       - "index.html"
       - "shelf.css"
