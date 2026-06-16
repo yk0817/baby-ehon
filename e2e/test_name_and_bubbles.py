@@ -84,10 +84,10 @@ def test_tap_emits_onomatopoeia_bubble(page, base_url):
     open_book(page, base_url, BOOK_SLUGS[0])
     size = page.viewport_size or {"width": 1280, "height": 720}
     page.mouse.click(size["width"] // 2, size["height"] // 2)
-    bubbles = page.locator("#fx-layer .sfx-bubble")
-    # バブルは ~1200ms で消えるので生成直後に確認する。
-    assert bubbles.count() >= 1
-    assert (bubbles.first.inner_text() or "").strip() != ""
+    # バブルは synchronous に生成され ~1200ms で消える。生サンプリングだと CI で
+    # 取りこぼす余地があるため、auto-retry のある wait_for_selector で「出たこと」を捉える。
+    bubble = page.wait_for_selector("#fx-layer .sfx-bubble", timeout=2000)
+    assert (bubble.inner_text() or "").strip() != ""
 
 
 def test_transition_emits_talk_bubble(page, base_url):
@@ -97,8 +97,9 @@ def test_transition_emits_talk_bubble(page, base_url):
     """
     open_book(page, base_url, BOOK_SLUGS[0])
     advance_by_next_button(page)
-    # emitTalk は遷移 700ms 後。余裕を持って待つ（吹き出しは ~2600ms 表示）。
-    page.wait_for_selector("#fx-layer .talk-bubble", timeout=2000)
+    # emitTalk は遷移 700ms 後。headless の timer clamping（背景タブで setTimeout が
+    # ≥1000ms に丸められる）も吸収できるよう余裕を持たせる（吹き出しは ~2600ms 表示）。
+    page.wait_for_selector("#fx-layer .talk-bubble", timeout=3000)
     talk = page.locator("#fx-layer .talk-bubble").first
     text = talk.inner_text() or ""
     assert "__NAME__" not in text
