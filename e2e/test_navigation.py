@@ -34,6 +34,7 @@ EXPECTED_FIRST_SCENE: dict[str, str] = {
     "kuruma": "shuppatsu",
     "otenki": "sunny",
     "yorunosora": "dusk",
+    "doubutsu": "inu",
 }
 
 #: 1 冊あたりのシーン数（全ブック共通の契約）。
