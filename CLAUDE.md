@@ -118,7 +118,7 @@ fi
    - 付いていなければ **実装に着手しない・ブランチも切らない**。人間に「`approved` を付けてほしい」と依頼して**停止**する
    - 自分で `approved` を貼らない（承認は人間の専権）
 2. **1 Issue = 1 ブランチ = 1 PR**: 複数 Issue を 1 つのブランチ／PR に**束ねない**。ブランチ名は `claude/issue-<N>`
-3. **PR 本文に `Closes #N`** を必ず入れ、その Issue だけを閉じる
+3. **approved な Issue は対応する PR を作成し、本文に `Closes #N` を必ず入れる**。これで PR がマージされた時点でその Issue だけが自動クローズされる（手動 close 不要・複数 Issue をまとめて閉じない）
 4. **PR の作成・マージは毎回承認プロンプト（`ask`）**。`gh pr create` / `gh pr merge` / `gh pr ready` は実行のたびに人間の承認が出る。**承認されれば Claude が実行してよい**（無確認では通さない）。承認が得られない場合はブランチ push までで止める
 5. 着手前に対象言語のルール（`~/.claude/docs/lang-rules/<lang>/`）を Read し、TDD（テスト先行）で進める
 
