@@ -1,0 +1,173 @@
+/* どうぶつパーティー えほん theme */
+
+.room {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+/* 各シーンの部屋の色（パーティー会場） */
+.room--inu   { background: linear-gradient(180deg, #fff0c2 0%, #ffe2cf 60%, #ffd2b0 100%); }
+.room--neko  { background: linear-gradient(180deg, #ffe6f0 0%, #ffd9ea 60%, #ffc8dd 100%); }
+.room--buta  { background: linear-gradient(180deg, #ffeaf3 0%, #ffd6e8 60%, #ffc2dc 100%); }
+.room--zou   { background: linear-gradient(180deg, #e3edff 0%, #d4e2ff 60%, #c4d6f5 100%); }
+.room--party { background: linear-gradient(180deg, #fff2c2 0%, #ffe0ee 55%, #e6d6ff 100%); }
+
+/* ───── ゆか ─────────────────────────────── */
+.floor {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 22%;
+  background: #ffb6cf;
+  border-top: 6px solid var(--ink);
+}
+.room--inu   .floor { background: #ffcf8f; }
+.room--zou   .floor { background: #b7c6e8; }
+.room--buta  .floor { background: #ffb0cf; }
+.room--party .floor { background: #e8b8da; }
+
+/* ───── ガーランド（三角フラッグ）───────── */
+.garland {
+  position: absolute;
+  top: 0;
+  left: -2%;
+  right: -2%;
+  height: 13%;
+  display: flex;
+  justify-content: space-around;
+  align-items: flex-start;
+  border-top: 5px solid var(--ink);
+  transform-origin: top center;
+  animation: garlandSway 3.6s ease-in-out infinite alternate;
+}
+.garland i {
+  width: 0;
+  height: 0;
+  border-left: 4.2vmin solid transparent;
+  border-right: 4.2vmin solid transparent;
+  border-top: 7vmin solid var(--pink);
+  filter: drop-shadow(0 2px 0 rgba(0,0,0,.12));
+}
+.garland i:nth-child(3n+1) { border-top-color: #ffd166; }
+.garland i:nth-child(3n+2) { border-top-color: #7ed957; }
+.garland i:nth-child(3n)   { border-top-color: #5dade2; }
+@keyframes garlandSway {
+  0%   { transform: rotate(-1.5deg); }
+  100% { transform: rotate(1.5deg); }
+}
+
+/* ───── ふうせん ─────────────────────────── */
+.balloon {
+  position: absolute;
+  width: clamp(48px, 11vmin, 96px);
+  aspect-ratio: 4 / 5;
+  border: 4px solid var(--ink);
+  border-radius: 50%;
+  box-shadow: inset -6px -8px 0 rgba(0,0,0,.08);
+}
+.balloon::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: -6px;
+  width: 8px;
+  height: 8px;
+  translate: -50% 0;
+  background: var(--ink);
+  clip-path: polygon(50% 0, 100% 100%, 0 100%);
+}
+.balloon::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 100%;
+  width: 2px;
+  height: 14vmin;
+  background: rgba(26,26,46,.5);
+  translate: -50% 0;
+}
+.balloon--a { top: 17%; left: 8%;  background: var(--pink);   animation: floatA 4.2s ease-in-out infinite alternate; }
+.balloon--b { top: 22%; right: 9%; background: var(--yellow); animation: floatB 5.0s ease-in-out infinite alternate; }
+.balloon--c { top: 15%; left: 50%; background: #7ed957; translate: -50% 0; animation: floatA 4.6s ease-in-out infinite alternate; }
+@keyframes floatA {
+  0%   { transform: translateY(0) rotate(-4deg); }
+  100% { transform: translateY(-14px) rotate(4deg); }
+}
+@keyframes floatB {
+  0%   { transform: translateY(-10px) rotate(3deg); }
+  100% { transform: translateY(6px) rotate(-3deg); }
+}
+
+/* ───── どうぶつ（主役）───────────────────── */
+.animal {
+  position: absolute;
+  left: 50%;
+  bottom: 14%;
+  translate: -50% 0;
+  width: clamp(180px, 46vmin, 360px);
+  aspect-ratio: 1;
+  z-index: 1;
+}
+.animal svg { width: 100%; height: 100%; display: block; }
+.animal--dance { animation: dance 1.6s ease-in-out infinite; transform-origin: bottom center; }
+@keyframes dance {
+  0%   { transform: rotate(-5deg) translateY(0); }
+  25%  { transform: rotate(0deg)  translateY(-12px); }
+  50%  { transform: rotate(5deg)  translateY(0); }
+  75%  { transform: rotate(0deg)  translateY(-12px); }
+  100% { transform: rotate(-5deg) translateY(0); }
+}
+
+/* ───── ケーキ（パーティー）───────────────── */
+/* パーティーは終了帯を上に出し、ケーキを主役として下中央に置く（重なり回避）。
+   ehon.css の .title-banner--end（bottom 配置）だけを上書きするようセレクタを絞る。 */
+.page--party .title-banner--end { top: 6%; bottom: auto; }
+.cake {
+  position: absolute;
+  left: 50%;
+  bottom: 16%;
+  translate: -50% 0;
+  width: clamp(160px, 42vmin, 320px);
+  z-index: 1;
+  animation: cakeBob 2.2s ease-in-out infinite alternate;
+}
+.cake svg { width: 100%; height: auto; display: block; }
+@keyframes cakeBob {
+  0%   { transform: translateY(0) scale(1); }
+  100% { transform: translateY(-8px) scale(1.03); }
+}
+
+/* ───── 紙ふぶき（パーティー）─────────────── */
+.confetti {
+  position: absolute;
+  inset: 12% 0 22% 0;
+  pointer-events: none;
+}
+.confetti span {
+  position: absolute;
+  left: var(--x);
+  top: -8%;
+  width: 12px;
+  height: 16px;
+  border-radius: 3px;
+  background: var(--pink);
+  animation: confettiFall var(--t, 2.4s) linear infinite;
+  animation-delay: var(--d, 0s);
+}
+.confetti span:nth-child(3n+1) { background: var(--yellow); }
+.confetti span:nth-child(3n+2) { background: #7ed957; }
+.confetti span:nth-child(4n)   { background: #5dade2; }
+@keyframes confettiFall {
+  0%   { transform: translateY(0) rotate(0); opacity: 0; }
+  15%  { opacity: 1; }
+  90%  { opacity: 1; }
+  100% { transform: translateY(120vh) rotate(540deg); opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .garland, .balloon, .animal--dance, .cake, .confetti span {
+    animation: none;
+  }
+}

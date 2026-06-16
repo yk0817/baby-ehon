@@ -1,6 +1,6 @@
 """E2E 基盤のスモークテスト（実ブラウザで green になることを担保する）。
 
-- 本棚に 5 冊ぶんのカードがある
+- 本棚に BOOK_SLUGS ぶんのカードがある
 - 1 冊を開くと初期シーンが表示される
 - ``__NAME__`` が生のまま画面に残らない（seed の「あかちゃん」に展開される）
 - getUserMedia / AudioContext モックが効いていてハングしない
@@ -26,7 +26,7 @@ from pages import (
 )
 
 
-def test_shelf_lists_five_books(page, base_url):
+def test_shelf_lists_all_books(page, base_url):
     open_shelf(page, base_url)
     assert book_cards(page).count() == len(BOOK_SLUGS)
     hrefs = [
