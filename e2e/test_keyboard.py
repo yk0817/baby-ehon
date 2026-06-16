@@ -68,10 +68,14 @@ def test_mashing_does_not_leak_elements(page, base_url):
     # 連打中はバブルが複数生成される（リアクションが発火している証跡）。
     assert page.locator("#fx-layer .key-bubble").count() >= 1
 
-    # key-bubble は ~1400ms、spark は ~900ms で除去される。寿命後に 0 へ戻ることを待つ。
-    # （自動 SFX は 3500ms 間隔なので、この待ち時間内には新たな spark を生まない）
+    # key-bubble（~1400ms）と spark（~900ms）が寿命後に 0 へ戻ることを待つ。
+    # spark は自動 SFX（3500ms 間隔）でも一時的に湧くため、ここでは「key-bubble と spark が
+    # 同時に 0 になる瞬間」を待つ（自動 SFX の谷で必ず成立する）。これで乱打由来の要素が
+    # 残留しない（リーク無し）ことを race なく確認できる。timeout は 1 周期分に余裕を持たせる。
     page.wait_for_function(
-        "() => document.querySelectorAll('#fx-layer .key-bubble').length === 0",
-        timeout=3000,
+        """() =>
+            document.querySelectorAll('#fx-layer .key-bubble').length === 0 &&
+            document.querySelectorAll('#fx-layer .spark').length === 0
+        """,
+        timeout=6000,
     )
-    assert page.locator("#fx-layer .spark").count() == 0
