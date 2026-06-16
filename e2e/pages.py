@@ -36,6 +36,9 @@ _LOCK_HOLD_MS = _LOCK_UNLOCK_MS + 300
 #: 自動進行の間隔（ehon.js の AUTO_ADVANCE_MS）。実時間で待つと遅いので clock で送る。
 AUTO_ADVANCE_MS = 12000
 
+#: 語りかけ吹き出しの自動発火間隔（ehon.js の AUTO_TALK_MS）。clock 早送りで再現する。
+AUTO_TALK_MS = 5200
+
 
 def open_shelf(page: Any, base_url: str) -> Any:
     """本棚（ルート index.html）を開く。"""
