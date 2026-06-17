@@ -25,6 +25,12 @@ _ALLOWLIST: dict[str, str] = {
     "meta-viewport": "user-scalable=no は誤操作防止の意図的設計（対象児に拡大縮小は不要）",
 }
 
+#: 検査する axe ルール集合。WCAG 2.0/2.1 の A・AA に絞る。
+#: best-practice 系の非 WCAG ルール（環境差・axe バージョン差で揺れやすい）を除外しつつ、
+#: color-contrast 等の重大ルールは WCAG タグに含まれるので網羅できる。新ルール追加による
+#: CI のフレークも抑えられる。
+_WCAG_TAGS = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"]
+
 #: 主要操作対象（aria-label とフォーカス可能性を保証する）。
 _MAIN_CONTROLS = (
     ".home-btn",
@@ -36,8 +42,10 @@ _MAIN_CONTROLS = (
 
 
 def _violations_outside_allowlist(page) -> list[dict]:
-    """axe を実行し、allowlist に載っていない違反だけを返す。"""
-    results = Axe().run(page)
+    """WCAG A/AA に絞って axe を実行し、allowlist に載っていない違反だけを返す。"""
+    results = Axe().run(
+        page, options={"runOnly": {"type": "tag", "values": _WCAG_TAGS}}
+    )
     return [
         v
         for v in results.response.get("violations", [])
