@@ -4,9 +4,9 @@
 # 設計の正: docs/automation/agent-pipeline.md §6.4（PR 作成仕様）/ §6.5（こども連鎖）/
 #           §6.6（cron・モデル）/ §8.3（ログ漏洩防止）/ §9（ファイル配置）/ §11 step7（検証）。
 #
-# このフェーズ（P4）では workflow_dispatch（手動起動）専用。cron による定期実行
-# （10:00 JST 月曜）は Phase 6（統合・cron 有効化）で、検証手順 8 まで通ったあとに
-# 有効化する（§11 step9）。それまでは schedule ブロックをコメントアウトしておく。
+# 起動は workflow_dispatch（手動）と schedule（10:00 JST 月曜）の 2 経路。cron は
+# Phase 6（統合・cron 有効化）で有効化済み（§11 step9）。手動 dispatch は dry_run 既定 true、
+# schedule 起動は dry_run 未指定 → 実投稿（自律実装）になる。
 #
 # 入口ゲート: 作成者は approved 付き Issue だけを実装する（§2.2）。判定は run 実体側で行う。
 # 出口ゲート: PR は常にドラフトで作成し、マージは人間が行う（§6.4 / §8.4）。
@@ -28,10 +28,10 @@ on:
         type: boolean
         default: true
 
-  # P6 で有効化（§11 step9）。
-  # cron: 0 1 * * 1 = 01:00 UTC 月曜 = 10:00 JST 月曜（週 1 ペース、§6.6）。
-  # schedule:
-  #   - cron: "0 1 * * 1"
+  # cron: 0 1 * * 1 = 01:00 UTC 月曜 = 10:00 JST 月曜（週 1 ペース、§6.6）。Phase 6 で有効化済み（§11 step9）。
+  # schedule 起動では inputs.dry_run が未定義 → DRY_RUN が空 → 実投稿（自律実装）になる。
+  schedule:
+    - cron: "0 1 * * 1"
 
 # 権限（§6.5）:
 #   contents: write       — ブランチを push するため
