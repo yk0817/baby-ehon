@@ -4,3 +4,5 @@
 #   uv run --with pytest-playwright python -m pytest e2e/ -q
 pytest>=8.0
 pytest-playwright>=0.5
+# a11y 自動チェック（axe-core を同梱。CDN 非依存でオフライン実行できる）
+axe-playwright-python>=0.1.7
