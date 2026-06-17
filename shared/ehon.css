@@ -290,6 +290,16 @@ body.flash::after {
   text-decoration: none;
 }
 
+/* a11y: キーボード操作時に操作対象を明確に（フォーカス可視化）。
+   :focus-visible なのでタップ操作では出ず、キーボード/支援技術利用時だけ枠が出る。 */
+.home-btn:focus-visible,
+.nav-btn:focus-visible,
+.lock-btn:focus-visible,
+.cam-toggle:focus-visible {
+  outline: 4px solid var(--ink);
+  outline-offset: 3px;
+}
+
 /* ─── ロックボタン ───────────────────────────────────── */
 .lock-btn {
   width: 44px; height: 44px;
