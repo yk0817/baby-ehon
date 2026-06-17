@@ -154,7 +154,12 @@ def lock(page: Any) -> None:
 
 
 def unlock_long_press(page: Any) -> None:
-    """``.lock-btn`` を長押し（pointerdown → 待機 → pointerup）してロック解除する。"""
+    """``.lock-btn`` を長押し（pointerdown → 待機 → pointerup）してロック解除する。
+
+    未施錠で呼ぶと pointerdown が施錠扱い（``setLocked(true)``）になり、結果的に
+    「解除したつもりが施錠される」状態反転を招く。誤用を早期に弾くため施錠前提を確認する。
+    """
+    assert is_locked(page), "unlock_long_press は施錠中に呼ぶこと（未施錠だと逆に施錠される）"
     btn = page.locator(".lock-btn")
     btn.dispatch_event("pointerdown")
     page.wait_for_timeout(_LOCK_HOLD_MS)
