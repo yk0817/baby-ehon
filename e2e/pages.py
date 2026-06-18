@@ -27,6 +27,7 @@ BOOK_SLUGS: tuple[str, ...] = (
     "otenki",
     "yorunosora",
     "doubutsu",
+    "iro",
 )
 
 #: ロック解除に必要な長押し時間（ehon.js の LOCK_UNLOCK_MS）。余裕を持って待つ。
