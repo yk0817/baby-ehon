@@ -12,6 +12,7 @@
 | ☀️ おてんき | [`otenki/`](otenki/) | はれ → くもり → あめ → かみなり → にじ |
 | 🌙 よる の そら | [`yorunosora/`](yorunosora/) | ゆうやけ → おつきさま → ほし → ながれぼし → あさやけ |
 | 🐶 どうぶつパーティー | [`doubutsu/`](doubutsu/) | いぬ → ねこ → ぶた → ぞう → みんなでパーティー |
+| 🌈 いろの せかい | [`iro/`](iro/) | あか → きいろ → あお → みどり → にじ |
 
 トップの [`index.html`](index.html) は本棚（ランディング）。タップで各ブックに飛ぶ。
 
@@ -77,7 +78,7 @@ baby-ehon/
 │   ├── index.html
 │   ├── theme.css          # 背景・乗り物などのテーマ
 │   └── config.js          # シーン別 sfx / talks / colors / notes
-├── densha/  ├── kuruma/  ├── otenki/  ├── yorunosora/  └── doubutsu/   ← それぞれ同構成
+├── densha/  ├── kuruma/  ├── otenki/  ├── yorunosora/  ├── doubutsu/  └── iro/   ← それぞれ同構成
 ```
 
 ## 新しいブックを追加するには
