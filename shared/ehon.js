@@ -143,6 +143,35 @@
     osc.stop(ctx.currentTime + duration + 0.05);
   }
 
+  // 録音ファイルを持たない方針のため、動物の鳴き声はオシレーター＋ゲインで合成する。
+  // cry は chirp（1 つの音源）の配列で、各 chirp を時間差で並べて「わんわん」「ぱおーん」等を作る。
+  //   { type, f0, f1, dur, gain, at } — f0→f1 はピッチのグライド、at は開始オフセット秒。
+  const CRY_MAX_GAIN = 0.25; // 0-2 歳の安全上限（突発的に大きくしない）。
+  function playCry(cry) {
+    const ctx = ensureAudio();
+    if (!ctx || !Array.isArray(cry) || cry.length === 0) return;
+    if (ctx.state === 'suspended') ctx.resume();
+    const base = ctx.currentTime;
+    cry.forEach((c) => {
+      const start = base + (c.at || 0);
+      const dur = c.dur || 0.18;
+      const f0 = Math.max(1, c.f0 || 440);
+      const f1 = Math.max(1, c.f1 || f0);
+      const peak = Math.min(c.gain || 0.18, CRY_MAX_GAIN);
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = c.type || 'sawtooth';
+      osc.frequency.setValueAtTime(f0, start);
+      osc.frequency.exponentialRampToValueAtTime(f1, start + dur);
+      gain.gain.setValueAtTime(0.0001, start);
+      gain.gain.exponentialRampToValueAtTime(peak, start + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, start + dur);
+      osc.connect(gain).connect(ctx.destination);
+      osc.start(start);
+      osc.stop(start + dur + 0.05);
+    });
+  }
+
   // ─── SFX text + sparks ────────────────────────────────
   function emitSfxAt(x, y, opts = {}) {
     const page = pages[current];
@@ -153,8 +182,16 @@
 
     const notes = sceneCfg.notes || [440, 550, 660];
     const note = notes[Math.floor(Math.random() * notes.length)];
-    if (!opts.quiet) playTone(note, 0.22, 'triangle');
-    else playTone(note, 0.14, 'sine');
+    // 通常タップは動物の鳴き声（cry があれば）を主たる音にする。鳴き声と音階ビープが
+    // 重なって騒がしくならないよう、cry のある場面では beep を出さない。静かな自動 SFX
+    // （quiet）は従来どおり柔らかい音階のみ（鳴き声を連発しない）。
+    if (opts.quiet) {
+      playTone(note, 0.14, 'sine');
+    } else if (Array.isArray(sceneCfg.cry) && sceneCfg.cry.length) {
+      playCry(sceneCfg.cry);
+    } else {
+      playTone(note, 0.22, 'triangle');
+    }
 
     const colors = sceneCfg.colors || ['pink', 'yellow', 'white'];
     const bubble = document.createElement('div');
