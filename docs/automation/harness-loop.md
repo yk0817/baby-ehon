@@ -97,24 +97,46 @@ harness の一番大事な原則。baby-ehon では:
 - **checker = e2e/pytest（決定的・客観）**。maker はこれを green にするコードを書くだけで、**テストファイルは書き換え禁止**（AGENTS.md で明文化＋ verify が `git diff` で e2e の改変を検出したら失敗）。
 - 受け入れ e2e（契約）は **maker とは別の主体**が用意する（§4.2）。これで「実装者がテストを甘くして自己採点する」罠を防ぐ。
 
-### 3.3 maker エンジンの抽象化（ラボ `claude_runner.py` の Maker 基底）
+### 3.3 maker エンジンの抽象化と切り替え（ラボ `claude_runner.py` の Maker 基底）
 
-ラボは maker を `Maker` インタフェースで抽象化し、`MockClaudeMaker` / `RealClaudeMaker` を差し替える。baby-ehon でも同じく抽象化する:
+ラボは maker を `Maker` インタフェースで抽象化し、`MockClaudeMaker` / `RealClaudeMaker` を差し替える。baby-ehon は同じ抽象化のうえで **`claude -p` と LangGraph(OpenAI) をオプションで切り替えられる**ようにする（両方を実装し、起動時に選ぶ）。
 
-| maker | 用途 |
-|---|---|
-| `MockMaker` | フィクスチャ配置でオフライン・決定的にループ自体をテスト（CI で外部依存ゼロ） |
-| `ClaudeCliMaker` | `claude -p`（headless）。AGENTS.md を自動で読み、ファイル編集＋pytest 実行を自分で行う。`--permission-mode acceptEdits` / `--allowedTools` / `--max-budget-usd` の安全装置付き |
-| `LangGraphMaker` | 既存 `weekly_implementer`（OpenAI SDK）を maker として包む |
+| maker | 切替値 | エンジン | 用途・特性 |
+|---|---|---|---|
+| `MockMaker` | `mock` | なし（フィクスチャ配置） | オフライン・決定的にループ自体をテスト（CI で外部依存ゼロ・無課金） |
+| `ClaudeCliMaker` | `claude-cli` | `claude -p`（headless） | AGENTS.md を自動で読み、ファイル編集＋pytest 実行を**自分で**行う。`--permission-mode acceptEdits` / `--allowedTools` / `--max-budget-usd` の安全装置付き。要 `ANTHROPIC_API_KEY`（CI なら claude CLI 導入も） |
+| `LangGraphMaker` | `langgraph` | OpenAI SDK | 既存 `weekly_implementer`（`agent-pipeline.md` §6）を maker として包む。`whole-file rewrite` を差分適用。要 `OPENAI_API_KEY` |
 
-> **【決定事項 A — 要確認】maker エンジンをどれにするか。**
-> 既存パイプラインは意図的に `claude-code-action` を避け LangGraph+OpenAI を採用済み（`agent-pipeline.md` §12）。一方ラボの「agent がファイルを編集し自分で pytest を回す・AGENTS.md を読む」性質は `claude -p` が最も素直。
-> **推奨**: ループ本体はエンジン非依存に作り（`Maker` 基底）、**まずローカルは `ClaudeCliMaker`、CI は当面 `LangGraphMaker` を既定**にして差し替え可能にする。CI で `claude -p` を使うなら `ANTHROPIC_API_KEY` と claude CLI 導入（公式 action か npm）が要る——この一点だけ合意してから着手したい。
+#### 切り替え方法（CLI フラグ ＋ 環境変数）
+
+`Maker` 基底（`automation/loop/maker.py`）に対し、**起動時に1か所で選ぶ**。優先順は CLI フラグ > 環境変数 > 既定。
+
+```bash
+# ローカル: claude -p で回す
+python -m automation.loop.run_loop --spec automation/specs/issue-42 --maker claude-cli --model sonnet
+
+# ローカル: 既存 LangGraph(OpenAI) で回す
+python -m automation.loop.run_loop --spec automation/specs/issue-42 --maker langgraph
+
+# オフライン体験／CI のループ自己テスト
+python -m automation.loop.run_loop --spec automation/specs/example-book --maker mock
+```
+
+| 切替手段 | キー | 値 | 既定 |
+|---|---|---|---|
+| CLI フラグ | `--maker` | `mock` / `claude-cli` / `langgraph` | 環境変数 → なければ `claude-cli` |
+| 環境変数 | `BABY_EHON_MAKER` | 同上 | （CI ワークフローで設定。例: `langgraph`） |
+
+- **`config.py` に `maker` フィールドを追加**（`LoopConfig` は不変なので起動時に確定）。`validate()` で許可値以外は弾く。
+- **ファクトリ `build_maker(config)`**（ラボ同名関数の拡張）が切替値を見て対応する `Maker` 実装を返す。新エンジン追加はこの1関数とテーブルに足すだけ（OCP）。
+- **既定の使い分け（推奨）**: ローカル本番は `claude-cli`（AGENTS.md をそのまま使え足場と噛み合う）、CI ワークフローは `BABY_EHON_MAKER` で明示。既存が意図的に `claude-code-action` を避けている（`agent-pipeline.md` §12）ため、CI で `claude-cli` を使うかは**ワークフロー側の env 設定だけで選べる**——コード分岐は不要。
+- **Secrets**: `claude-cli` を使う経路では `ANTHROPIC_API_KEY`、`langgraph` では `OPENAI_API_KEY`。CI でどちらを既定にするかは env と Secret の有無で決まる（両方登録すれば実行時に切替自在）。
 
 ### 3.4 安全装置（ラボ `loop/config.py` の写像）
 
 | つまみ | 役割 | 既定 |
 |---|---|---|
+| `maker` | maker エンジン選択（`mock`/`claude-cli`/`langgraph`、§3.3） | `claude-cli`（env で上書き可） |
 | `max_iters` | maker 呼び出しの総回数上限 | 12 |
 | `max_retries` | 1機能あたりの再挑戦上限 | 3 |
 | `max_budget_usd` | 本番時の金額上限（`claude --max-budget-usd`） | 1.0 |
@@ -262,14 +284,14 @@ automation/                      # ★新規: harness × loop の本体（.githu
 3. **PR-3**: `loop/maker.py`（`Maker` 基底 + `MockMaker`）＋ `loop/run_loop.py` ＋ `tests/test_loop_mock.py`（mock で一周を E2E）。
 4. **PR-4**: `loop/spec_author.py`（Issue→features.json + 受け入れ e2e 起草、LLM はスタブ可能に）＋ `tests/test_spec_author.py`。
 5. **PR-5**: 新ブック1冊の spec バンドル ＋ mock フィクスチャ（“動く見本”を `--mock` で完走）。
-6. **PR-6**: `ClaudeCliMaker`（or `LangGraphMaker`）でローカル本番ループを通す（決定事項 A の合意後）。
-7. **PR-7**: 既存 `weekly-pr-from-top-issue.yml` を loop オーケストレーションへ改修（`workflow_dispatch` のみ・cron は据え置き）。
+6. **PR-6**: `ClaudeCliMaker` と `LangGraphMaker` を両方実装し、`--maker` / `BABY_EHON_MAKER` 切替を通す（§3.3）。ローカルで `claude-cli` と `langgraph` の両経路を本番ループで確認。
+7. **PR-7**: 既存 `weekly-pr-from-top-issue.yml` を loop オーケストレーションへ改修（`workflow_dispatch` のみ・cron は据え置き）。`BABY_EHON_MAKER` を env で設定し CI の既定エンジンを選ぶ。
 8. **PR-8**: CI で approved Issue 1本を通し（Draft PR + child-review 連鎖）、検証手順6まで確認。
 9. **PR-9**: cron 有効化。
 
 ### 着手前に必要な合意・人間作業
 
-- **決定事項 A（§3.3）**: CI の maker エンジン（`claude -p` か LangGraph か）を確定。`claude -p` 採用なら `ANTHROPIC_API_KEY` Secret 登録と claude CLI 導入方針。
+- **CI の既定 maker（§3.3）**: `claude-cli` / `langgraph` のどちらを CI 既定にするか。**コード分岐は不要で `BABY_EHON_MAKER` env だけで切替可能**。`claude-cli` 経路を使うなら `ANTHROPIC_API_KEY` Secret 登録と claude CLI 導入、`langgraph` なら既存 `OPENAI_API_KEY` を流用。両 Secret を登録すれば実行時に切替自在。
 - approved ラベルの運用更新（§4.2）: 「実装してよい」→「**この受け入れ e2e で実装してよい**」へ意味を一段深める。
 - 既存 Secrets / denylist（`agent-pipeline.md` §13）はそのまま流用。
 
@@ -283,4 +305,5 @@ automation/                      # ★新規: harness × loop の本体（.githu
 | ローカル専用 lab を別建て（ラボそのままコピー） | △ 部分採用 | ローカル `ClaudeCliMaker` として残すが、本命は CI 統合（ユーザー指定 = 既存CI作成者のループ化） |
 | maker に受け入れテストも書かせる | ❌ | 自己採点の罠。契約は spec-author + 人間ゲートで握る（harness の肝） |
 | L3 無人 merge | ❌ | 公開リポ・自動 merge 禁止方針（`agent-pipeline.md` 非ゴール）に反する |
-| `claude-code-action` を全面採用 | △ 保留 | 既存が意図的に避けている。決定事項 A として別途合意 |
+| maker エンジンを `claude-cli`/`langgraph` どちらか一方に固定 | ❌ | `--maker` / `BABY_EHON_MAKER` で**両対応・切替可能**にする（§3.3）。一方に縛らず、ローカルと CI で使い分け・A/B できる |
+| `claude-code-action` を全面採用 | △ 任意 | `claude-cli` 経路を CI で使うときの導入手段の一つ。`BABY_EHON_MAKER=claude-cli` を選んだ場合のみ。既定強制はしない |
