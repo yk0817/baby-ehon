@@ -13,7 +13,7 @@
 from __future__ import annotations
 
 import json
-from dataclasses import dataclass, replace
+from dataclasses import asdict, dataclass, replace
 from pathlib import Path
 
 # 機能(feature)の状態
@@ -88,15 +88,22 @@ class LoopState:
 
     # ---- 永続化 ----
     def to_dict(self) -> dict:
+        # asdict は frozen Feature を再帰コピーして返す。vars(f) だと __dict__ への
+        # 参照を晒し、返値を変更すると frozen インスタンスを無音で汚染するため使わない。
         return {
             "project": self.project,
-            "features": [vars(f) for f in self.features],
+            "features": [asdict(f) for f in self.features],
         }
 
     def save(self, path: Path | str) -> None:
-        Path(path).write_text(
+        # 一時ファイルに書いてから置換する。途中でクラッシュしても既存 state.json は
+        # 壊れない（os.replace は同一FS内でアトミック）= 再開可能性の主契約を守る。
+        p = Path(path)
+        tmp = p.parent / (p.name + ".tmp")
+        tmp.write_text(
             json.dumps(self.to_dict(), ensure_ascii=False, indent=2), encoding="utf-8"
         )
+        tmp.replace(p)
 
     @classmethod
     def from_dict(cls, data: dict) -> LoopState:
@@ -116,6 +123,8 @@ class LoopState:
             )
             for f in data["features"]
         )
+        if not features:
+            raise ValueError(f"features が空です: {features_json}")
         return cls(project=data.get("project", "project"), features=features)
 
     @classmethod

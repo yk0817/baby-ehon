@@ -134,6 +134,44 @@ def test_save_then_load_roundtrip(tmp_path):
     assert restored._get("F2").last_error == "boom"
 
 
+def test_to_dict_does_not_expose_internal_state():
+    # Contract: to_dict() の返値を変更しても元 state は不変（frozen の保護を貫く）。
+    # 回帰: vars(f) は __dict__ への参照を返し frozen を無音で汚染するため asdict を使う。
+    state = _sample_state()
+    snapshot = state.to_dict()
+    snapshot["features"][0]["status"] = IN_PROGRESS
+    assert state._get("F1").status == PENDING
+
+
+def test_save_is_atomic_no_temp_residue(tmp_path):
+    # Contract: save は一時ファイル経由でアトミック置換し、後始末で .tmp を残さない。
+    state = _sample_state()
+    path = tmp_path / "state.json"
+    state.save(path)
+    assert LoopState.load(path) == state
+    assert list(tmp_path.glob("*.tmp")) == []
+
+
+def test_save_overwrite_keeps_valid_file(tmp_path):
+    # Contract: 既存 state.json への上書き保存後も常に valid JSON（再開可能）。
+    path = tmp_path / "state.json"
+    _sample_state().save(path)
+    _sample_state().mark_done("F1").save(path)
+    assert LoopState.load(path)._get("F1").status == DONE
+
+
+def test_from_features_json_rejects_empty(tmp_path):
+    # Contract: 空 spec は弾く。features=() だと is_complete/all_done が vacuous True
+    # になり「何もせず全完了」扱いになるのを境界で防ぐ。
+    features_json = tmp_path / "features.json"
+    features_json.write_text(
+        json.dumps({"project": "x", "features": []}, ensure_ascii=False),
+        encoding="utf-8",
+    )
+    with pytest.raises(ValueError):
+        LoopState.from_features_json(features_json)
+
+
 def test_from_features_json(tmp_path):
     # Contract: spec の features.json から全 pending の初期状態を作れる。
     features_json = tmp_path / "features.json"
