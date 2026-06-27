@@ -80,6 +80,10 @@ fi
 - 新規ブック追加時は README のラインナップ表とディレクトリ構成も更新する
 - `.claude/settings.json` の PostToolUse hook が、コード編集時に README 更新の要否をリマインドする
 
+## ドキュメント
+
+- **構造・処理フロー・状態遷移を説明するドキュメント（特に `docs/automation/` の設計・パイプライン）には、理解を助けるためフロー図（Mermaid）をなるべく添える**（文章だけで済ませない）。Mermaid を書く前に `~/.claude/docs/mermaid-style.md` を Read する（パースエラー対策）
+
 ## コミットメッセージ
 
 - 日本語、Conventional Commits 形式（`feat:`, `fix:`, `refactor:`, `docs:`, `chore:` など）
