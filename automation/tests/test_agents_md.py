@@ -41,6 +41,25 @@ def test_contains_required_policy(text: str, needle: str, why: str) -> None:
     assert needle in text, f"AGENTS.md に『{needle}』が無い（{why}）"
 
 
+@pytest.mark.parametrize(
+    ("needle", "why"),
+    [
+        ("本棚掲載", "ゲート① 必須シナリオ: book-card に出る"),
+        ("ページ送り4経路", "ゲート① 必須シナリオ: 次へ/スワイプ/ArrowRight/自動進行"),
+        ("チャイルドロック", "ゲート① 必須シナリオ: 施錠→長押し解錠"),
+        ("a11y", "ゲート① 必須シナリオ: コントラスト等"),
+    ],
+)
+def test_lists_required_e2e_scenarios(text: str, needle: str, why: str) -> None:
+    # Contract: maker が新ブックで満たすべき必須シナリオ網羅（§3.5 ①）を明示する
+    assert needle in text, f"AGENTS.md にシナリオ『{needle}』が無い（{why}）"
+
+
+def test_includes_flow_diagram(text: str) -> None:
+    # Contract: 理解を助けるため maker の作業フローを Mermaid 図で示す
+    assert "```mermaid" in text
+
+
 def test_no_contact_info_leak(text: str) -> None:
     # 指示書自身も公開物。メール/電話/住所らしき字面を含めない
     import sys
