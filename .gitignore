@@ -4,10 +4,16 @@
 node_modules/
 *.log
 
-# Python（E2E テスト）
+# Python（E2E テスト・自動化ループ）
 __pycache__/
 .pytest_cache/
 *.pyc
+# coverage 成果物（verify.sh ゲート② が repo ルートに生成する）
+.coverage
+.coverage.*
+htmlcov/
+# ローカル venv（automation 足場用）
+.venv/
 
 # 個人設定（公開リポジトリに個人名を含めない）
 shared/baby.js
