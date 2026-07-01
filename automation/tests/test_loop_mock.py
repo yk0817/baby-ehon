@@ -89,11 +89,11 @@ class RecordingMaker(Maker):
     """
 
     def __init__(self, inner: Maker | None = None):
-        self.calls: list[tuple[str, str]] = []
+        self.calls: list[tuple[str, str, str]] = []  # (id, feedback, status)
         self._inner = inner
 
     def implement(self, feature, feedback: str = "") -> str:
-        self.calls.append((feature.id, feedback))
+        self.calls.append((feature.id, feedback, feature.status))
         if self._inner is not None:
             return self._inner.implement(feature, feedback)
         return f"recorded {feature.id}"
@@ -149,6 +149,7 @@ def test_fixtures_placed_and_green_marks_done(tmp_path):
     report = run_loop(_config(tmp_path), maker, _green, state)
 
     assert report.state.all_done()
+    assert report.stopped_reason == "complete"
     assert set(report.done) == {"F1", "F2"}
     assert report.iterations == 2
     assert (ws / "f1.txt").exists() and (ws / "f2.txt").exists()
@@ -162,6 +163,7 @@ def test_red_retries_then_fails(tmp_path):
     report = run_loop(_config(tmp_path, max_retries=2), maker, _red, state)
 
     assert set(report.failed) == {"F1"}
+    assert report.stopped_reason == "all_failed"  # 全 FAILED は complete と区別する
     assert report.state._get("F1").status == FAILED
     assert report.state._get("F1").attempts == 2
 
@@ -201,6 +203,7 @@ def test_maker_called_fresh_with_feedback(tmp_path):
     assert [c[0] for c in maker.calls] == ["F1", "F1"]  # 同じ feature を2回、独立起動
     assert maker.calls[0][1] == ""  # 初回は feedback 無し
     assert "boom" in maker.calls[1][1]  # 2回目は前回の verify ログが渡る
+    assert maker.calls[0][2] == IN_PROGRESS  # maker には着手中(=最新)の feature が渡る
 
 
 # ── 再開（state 永続化） ───────────────────────────────

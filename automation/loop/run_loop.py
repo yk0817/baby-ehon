@@ -104,17 +104,27 @@ def run_loop(
         raise ValueError("L2/L3 では maker と checker の注入が必要です")
 
     iterations = 0
-    stopped_reason = "complete"
-    while not state.is_complete():
+    stopped_reason = ""
+    while True:
+        if state.is_complete():
+            # DONE も FAILED も is_complete。監視が誤読しないよう成否を区別して残す。
+            stopped_reason = "complete" if state.all_done() else "all_failed"
+            break
         if iterations >= config.max_iters:
             stopped_reason = "max_iters"  # 総呼び出し上限で打ち切り（暴走防止）
             break
 
         feature = state.next_actionable()
-        if feature is None:  # is_complete=False なら通常来ない（防御的）
+        if (
+            feature is None
+        ):  # pragma: no cover  # is_complete=False なら通常来ない（防御的）
+            stopped_reason = "complete" if state.all_done() else "all_failed"
             break
 
         state = state.mark_in_progress(feature.id)
+        feature = state._get(
+            feature.id
+        )  # IN_PROGRESS を反映した最新を maker/checker へ渡す
         iterations += 1
 
         # maker は毎回まっさら。前回の失敗理由だけを feedback として渡す。
