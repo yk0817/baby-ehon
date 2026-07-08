@@ -155,15 +155,37 @@ _INIT_SCRIPT = r"""
   }
 
   // ── AudioContext スタブ ──────────────────────────────
-  window.__audio = { contexts: 0, oscillators: 0, gains: 0, tones: 0 };
+  // compressors / intoCompressor / directToDestination は Issue #78（マスター
+  // コンプレッサー経由の出力）の契約観測用。接続経路をカウンタで可視化する。
+  window.__audio = {
+    contexts: 0, oscillators: 0, gains: 0, tones: 0,
+    compressors: 0, intoCompressor: 0, directToDestination: 0,
+  };
   class FakeAudioParam {
+    constructor(value = 0) { this.value = value; }
     setValueAtTime() { return this; }
     exponentialRampToValueAtTime() { return this; }
     linearRampToValueAtTime() { return this; }
   }
   class FakeNode {
-    constructor() { this.frequency = new FakeAudioParam(); this.gain = new FakeAudioParam(); }
-    connect(dest) { return dest; }
+    constructor() {
+      this.frequency = new FakeAudioParam();
+      this.gain = new FakeAudioParam();
+      // DynamicsCompressorNode の AudioParam（実 API に合わせて備える）
+      this.threshold = new FakeAudioParam();
+      this.knee = new FakeAudioParam();
+      this.ratio = new FakeAudioParam();
+      this.attack = new FakeAudioParam();
+      this.release = new FakeAudioParam();
+      this.isDestination = false;
+      this.isCompressor = false;
+    }
+    connect(dest) {
+      // 「マスター段を経由せず destination 直結した音源」を検出できるようにする
+      if (dest && dest.isDestination && !this.isCompressor) window.__audio.directToDestination += 1;
+      if (dest && dest.isCompressor) window.__audio.intoCompressor += 1;
+      return dest;
+    }
     disconnect() {}
     start() { window.__audio.tones += 1; }
     stop() {}
@@ -175,9 +197,16 @@ _INIT_SCRIPT = r"""
       this.state = 'running';
       this.currentTime = 0;
       this.destination = new FakeNode();
+      this.destination.isDestination = true;
     }
     createOscillator() { window.__audio.oscillators += 1; return new FakeNode(); }
     createGain() { window.__audio.gains += 1; return new FakeNode(); }
+    createDynamicsCompressor() {
+      window.__audio.compressors += 1;
+      const node = new FakeNode();
+      node.isCompressor = true;
+      return node;
+    }
     resume() { this.state = 'running'; return Promise.resolve(); }
     suspend() { return Promise.resolve(); }
     close() { return Promise.resolve(); }
