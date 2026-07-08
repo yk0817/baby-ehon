@@ -26,7 +26,7 @@ def test_defaults_match_baby_ehon_policy():
     assert cfg.level == "L2"
     assert cfg.min_coverage == 80
     assert cfg.max_iters == 12
-    assert cfg.max_retries == 3
+    assert cfg.max_attempts == 3
 
 
 def test_config_is_frozen():
@@ -51,7 +51,7 @@ def test_validate_rejects_unknown_level():
         _config(level="L9").validate()
 
 
-@pytest.mark.parametrize("field,value", [("max_iters", 0), ("max_retries", 0)])
+@pytest.mark.parametrize("field,value", [("max_iters", 0), ("max_attempts", 0)])
 def test_validate_rejects_non_positive_limits(field, value):
     with pytest.raises(ValueError):
         _config(**{field: value}).validate()
