@@ -130,15 +130,22 @@
   let audioCtx;
   let masterOut; // 全音源の出口（compressor → destination）。ctx と同寿命で 1 個だけ
   function createMasterOut(ctx) {
-    if (typeof ctx.createDynamicsCompressor !== 'function') return ctx.destination;
-    const comp = ctx.createDynamicsCompressor();
-    comp.threshold.value = MASTER_THRESHOLD_DB;
-    comp.knee.value = MASTER_KNEE_DB;
-    comp.ratio.value = MASTER_RATIO;
-    comp.attack.value = MASTER_ATTACK_S;
-    comp.release.value = MASTER_RELEASE_S;
-    comp.connect(ctx.destination);
-    return comp;
+    // マスター段の構築に失敗しても音を全滅させない: audioCtx は先に確定するため、
+    // ここで例外を投げると masterOut が undefined のまま再構築されない。失敗時は
+    // 素通し（従来の destination 直結）に落として再生自体は守る。
+    try {
+      if (typeof ctx.createDynamicsCompressor !== 'function') return ctx.destination;
+      const comp = ctx.createDynamicsCompressor();
+      comp.threshold.value = MASTER_THRESHOLD_DB;
+      comp.knee.value = MASTER_KNEE_DB;
+      comp.ratio.value = MASTER_RATIO;
+      comp.attack.value = MASTER_ATTACK_S;
+      comp.release.value = MASTER_RELEASE_S;
+      comp.connect(ctx.destination);
+      return comp;
+    } catch (_) {
+      return ctx.destination;
+    }
   }
   function ensureAudio() {
     if (audioCtx) return audioCtx;

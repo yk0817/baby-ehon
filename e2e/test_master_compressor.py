@@ -79,6 +79,25 @@ def test_cry_routes_through_master(page, base_url):
     assert audio["directToDestination"] == 0, f"destination 直結の音源が残っている: {audio}"
 
 
+def test_fallback_without_compressor_keeps_sound(page, base_url):
+    """``createDynamicsCompressor`` が無い環境では従来どおり直結で音が鳴り続ける。
+
+    マスター段は聴覚保護の**追加**であり、非対応環境で音が全滅しないことを固定する
+    （conftest のスタブから当該メソッドだけ落として旧環境を再現）。
+    """
+    page.add_init_script(
+        "delete window.AudioContext.prototype.createDynamicsCompressor;"
+    )
+    open_book(page, base_url, "hikouki")
+    _tap_center(page)
+    audio = page.evaluate("() => window.__audio")
+    assert audio["compressors"] == 0, f"非対応環境でコンプレッサーが作られている: {audio}"
+    assert audio["tones"] >= 1, f"フォールバックで音が出ていない: {audio}"
+    assert audio["directToDestination"] >= 1, (
+        f"素通し（従来の destination 直結）になっていない: {audio}"
+    )
+
+
 def test_rapid_taps_all_route_through_single_master(page, base_url):
     """連打（重なりが生じる操作）でも全音源が 1 個のマスター段を通り、直結 0 を保つ。
 
