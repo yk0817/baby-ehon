@@ -101,6 +101,7 @@ html, body {
 .book-cover--night  { background: linear-gradient(to bottom, #0c0c2e 0%, #2a1a5e 60%, #4a2a6e 100%); }
 .book-cover--party  { background: linear-gradient(to bottom, #fff2c2 0%, #ffd6e8 55%, #e6d6ff 100%); }
 .book-cover--iro    { background: linear-gradient(to bottom, #ffe2e2 0%, #fff2c2 40%, #d4ecff 75%, #d8f6d0 100%); }
+.book-cover--dansu  { background: linear-gradient(to bottom, #f3e3ff 0%, #ffdcef 55%, #fff2c2 100%); }
 
 .book-label {
   padding: 18px 20px;
