@@ -140,7 +140,7 @@ python -m automation.loop.run_loop --spec automation/specs/example-book --maker 
 |---|---|---|
 | `maker` | maker エンジン選択（`mock`/`claude-p`/`langgraph`、§3.3） | `claude-p`（env で上書き可） |
 | `max_iters` | maker 呼び出しの総回数上限 | 12 |
-| `max_retries` | 1機能あたりの再挑戦上限 | 3 |
+| `max_attempts` | 1機能あたりの総試行回数上限（初回を含む。3 なら失敗3回目で failed＝再挑戦は2回） | 3 |
 | `max_budget_usd` | 本番時の金額上限（`claude --max-budget-usd`） | 1.0 |
 | `min_coverage` | 単体テスト網羅率の床（%）。`verify.sh` の `--cov-fail-under`（§3.5） | 80 |
 | `level` | 自動化レベル L1/L2/L3 | **L2**（実装するが PR は人間 merge 必須なので） |
@@ -187,7 +187,7 @@ python -m automation.loop.run_loop --spec automation/specs/example-book --maker 
 
 ```
 verify.sh:  ① e2e 全pass?  →  ② 単体 pass & coverage≥80%?  →  ③ privacy 0件?  →  ④ acceptance 改変0?
-            いずれか NG → exit≠0（赤）→ 失敗ログを maker に渡して再試行（max_retries まで）
+            いずれか NG → exit≠0（赤）→ 失敗ログを maker に渡して再試行（総試行 max_attempts まで）
             全て OK    → exit 0（緑）→ その feature を done
 ```
 
@@ -252,7 +252,7 @@ automation/                      # ★新規: harness × loop の本体（.githu
 ├── loop/
 │   ├── run_loop.py              #  ループ本体（plan→(maker→checker)×N→report）
 │   ├── state.py                 #  ②State（不変・永続化・再開可能）
-│   ├── config.py                #  安全装置（max_iters/retries/budget/level）
+│   ├── config.py                #  安全装置（max_iters/attempts/budget/level）
 │   ├── maker.py                 #  Maker 基底 + Mock/ClaudeCli/LangGraph 差し替え
 │   └── spec_author.py           #  approved Issue → features.json + 受け入れ e2e 起草
 ├── specs/

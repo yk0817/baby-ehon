@@ -20,7 +20,7 @@ from pathlib import Path
 PENDING = "pending"  # 未着手
 IN_PROGRESS = "in_progress"  # 着手中（クラッシュ時に再開対象と分かる）
 DONE = "done"  # 受け入れテスト green
-FAILED = "failed"  # リトライ上限に達して断念
+FAILED = "failed"  # 総試行回数の上限に達して断念
 
 
 @dataclass(frozen=True)
@@ -70,12 +70,16 @@ class LoopState:
         )
 
     def record_failure(
-        self, feature_id: str, error: str, max_retries: int
+        self, feature_id: str, error: str, max_attempts: int
     ) -> LoopState:
-        """1回失敗を記録。上限到達で FAILED、まだなら IN_PROGRESS のまま。"""
+        """1回失敗を記録。総試行が上限に達したら FAILED、まだなら IN_PROGRESS のまま。
+
+        max_attempts は「総試行回数」の上限（初回＋再挑戦の合計）。attempts が
+        max_attempts に達した時点で断念する（例: max_attempts=3 → 3回目で FAILED）。
+        """
         f = self._get(feature_id)
         attempts = f.attempts + 1
-        status = FAILED if attempts >= max_retries else IN_PROGRESS
+        status = FAILED if attempts >= max_attempts else IN_PROGRESS
         return self._with_feature(
             replace(f, attempts=attempts, last_error=error, status=status)
         )

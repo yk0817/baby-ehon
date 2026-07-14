@@ -59,7 +59,7 @@ def test_is_complete_and_all_done():
     assert state.is_complete() is False
     assert state.all_done() is False
 
-    failed = state.record_failure("F1", "boom", max_retries=1).mark_done("F2")
+    failed = state.record_failure("F1", "boom", max_attempts=1).mark_done("F2")
     assert failed.is_complete() is True  # F1=failed, F2=done → これ以上動かせない
     assert failed.all_done() is False  # failed が混じるので全 done ではない
 
@@ -93,23 +93,41 @@ def test_mark_in_progress():
 
 
 def test_record_failure_retries_then_fails():
-    # Contract: リトライ上限未満は in_progress のまま attempts を増やし、
-    # 上限到達で failed。last_error も記録する。
+    # Contract: 総試行回数が上限未満なら in_progress のまま attempts を増やし、
+    # max_attempts（初回を含む総試行回数）到達で failed。last_error も記録する。
     state = _sample_state()
 
-    once = state.record_failure("F1", "err-1", max_retries=2)
+    once = state.record_failure("F1", "err-1", max_attempts=2)
     assert once._get("F1").status == IN_PROGRESS
     assert once._get("F1").attempts == 1
     assert once._get("F1").last_error == "err-1"
 
-    twice = once.record_failure("F1", "err-2", max_retries=2)
+    twice = once.record_failure("F1", "err-2", max_attempts=2)
     assert twice._get("F1").status == FAILED
     assert twice._get("F1").attempts == 2
 
 
+def test_max_attempts_counts_total_tries_not_extra_retries():
+    # Contract: max_attempts は「総試行回数」の上限（初回＋再挑戦の合計）であって、
+    # 「初回に上乗せする再挑戦回数」ではない。max_attempts=3 なら 3 回目の試行で FAILED
+    # （＝初回＋再挑戦2回）。#88: 旧名 max_retries が docs の「再挑戦上限」表記と実挙動
+    # （総試行）でズレていたため、意味に合う名前へ統一したことを固定する回帰テスト。
+    state = _sample_state()
+
+    first = state.record_failure("F1", "e1", max_attempts=3)
+    assert first._get("F1").status == IN_PROGRESS  # 1回目: まだ動かせる
+
+    second = first.record_failure("F1", "e2", max_attempts=3)
+    assert second._get("F1").status == IN_PROGRESS  # 2回目: まだ
+
+    third = second.record_failure("F1", "e3", max_attempts=3)
+    assert third._get("F1").status == FAILED  # 3回目（総試行=上限）で断念
+    assert third._get("F1").attempts == 3
+
+
 def test_mark_done_clears_last_error():
     # Contract: done になったら last_error は消える。
-    state = _sample_state().record_failure("F1", "boom", max_retries=3).mark_done("F1")
+    state = _sample_state().record_failure("F1", "boom", max_attempts=3).mark_done("F1")
     assert state._get("F1").last_error == ""
 
 
@@ -123,7 +141,7 @@ def test_get_unknown_feature_raises():
 # ─────────────────────────────────────────────
 def test_save_then_load_roundtrip(tmp_path):
     # Contract: save→load で状態が完全復元できる（=途中から再開できる）。
-    state = _sample_state().mark_done("F1").record_failure("F2", "boom", max_retries=3)
+    state = _sample_state().mark_done("F1").record_failure("F2", "boom", max_attempts=3)
     path = tmp_path / "state.json"
 
     state.save(path)
