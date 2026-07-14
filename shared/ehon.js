@@ -118,12 +118,41 @@
   }
 
   // ─── Audio ────────────────────────────────────────────
+  // 連打では音源（osc+gain）が同時に生存し出力が**加算**される。個々の gain を
+  // クランプしても総和は抑えられないため、全音源を 1 段のコンプレッサー
+  // （リミッター寄りの設定）に通して聴覚保護の天井を作る（Issue #78）。
+  const MASTER_THRESHOLD_DB = -12; // この dB を超えたピークから圧縮を始める天井
+  const MASTER_KNEE_DB = 6;
+  const MASTER_RATIO = 12; // ほぼリミッターとして効かせる圧縮比
+  const MASTER_ATTACK_S = 0.003; // 連打の立ち上がりに即追従（ピークを逃さない）
+  const MASTER_RELEASE_S = 0.25;
+
   let audioCtx;
+  let masterOut; // 全音源の出口（compressor → destination）。ctx と同寿命で 1 個だけ
+  function createMasterOut(ctx) {
+    // マスター段の構築に失敗しても音を全滅させない: audioCtx は先に確定するため、
+    // ここで例外を投げると masterOut が undefined のまま再構築されない。失敗時は
+    // 素通し（従来の destination 直結）に落として再生自体は守る。
+    try {
+      if (typeof ctx.createDynamicsCompressor !== 'function') return ctx.destination;
+      const comp = ctx.createDynamicsCompressor();
+      comp.threshold.value = MASTER_THRESHOLD_DB;
+      comp.knee.value = MASTER_KNEE_DB;
+      comp.ratio.value = MASTER_RATIO;
+      comp.attack.value = MASTER_ATTACK_S;
+      comp.release.value = MASTER_RELEASE_S;
+      comp.connect(ctx.destination);
+      return comp;
+    } catch (_) {
+      return ctx.destination;
+    }
+  }
   function ensureAudio() {
     if (audioCtx) return audioCtx;
     const Ctx = window.AudioContext || window.webkitAudioContext;
     if (!Ctx) return null;
     audioCtx = new Ctx();
+    masterOut = createMasterOut(audioCtx);
     return audioCtx;
   }
   function playTone(freq = 440, duration = 0.18, type = 'sine') {
@@ -138,7 +167,7 @@
     gain.gain.setValueAtTime(0.0001, ctx.currentTime);
     gain.gain.exponentialRampToValueAtTime(0.18, ctx.currentTime + 0.02);
     gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + duration);
-    osc.connect(gain).connect(ctx.destination);
+    osc.connect(gain).connect(masterOut);
     osc.start();
     osc.stop(ctx.currentTime + duration + 0.05);
   }
@@ -166,7 +195,7 @@
       gain.gain.setValueAtTime(0.0001, start);
       gain.gain.exponentialRampToValueAtTime(peak, start + 0.02);
       gain.gain.exponentialRampToValueAtTime(0.0001, start + dur);
-      osc.connect(gain).connect(ctx.destination);
+      osc.connect(gain).connect(masterOut);
       osc.start(start);
       osc.stop(start + dur + 0.05);
     });
