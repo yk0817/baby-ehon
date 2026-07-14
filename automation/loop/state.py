@@ -20,7 +20,7 @@ from pathlib import Path
 PENDING = "pending"  # 未着手
 IN_PROGRESS = "in_progress"  # 着手中（クラッシュ時に再開対象と分かる）
 DONE = "done"  # 受け入れテスト green
-FAILED = "failed"  # リトライ上限に達して断念
+FAILED = "failed"  # 総試行回数の上限に達して断念
 
 
 @dataclass(frozen=True)

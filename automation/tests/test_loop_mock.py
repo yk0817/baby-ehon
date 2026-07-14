@@ -156,7 +156,7 @@ def test_fixtures_placed_and_green_marks_done(tmp_path):
 
 
 def test_red_retries_then_fails(tmp_path):
-    # Contract: checker が赤を返すと attempts が増え、max_attempts 到達で failed。
+    # Contract: checker が赤を返すと attempts が増え、max_attempts（総試行回数）到達で failed。
     maker = MockMaker(workspace=tmp_path / "ws", fixtures_root=tmp_path / "fx")
     state = _state(tmp_path, ids=("F1",))
 

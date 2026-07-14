@@ -93,8 +93,8 @@ def test_mark_in_progress():
 
 
 def test_record_failure_retries_then_fails():
-    # Contract: リトライ上限未満は in_progress のまま attempts を増やし、
-    # 上限到達で failed。last_error も記録する。
+    # Contract: 総試行回数が上限未満なら in_progress のまま attempts を増やし、
+    # max_attempts（初回を含む総試行回数）到達で failed。last_error も記録する。
     state = _sample_state()
 
     once = state.record_failure("F1", "err-1", max_attempts=2)

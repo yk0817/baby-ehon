@@ -37,7 +37,7 @@ class LoopConfig:
     level: str = LEVEL_ASSIST  # 自動化レベル（既定 = L2・人間 merge 前提）
     model: str = "sonnet"  # 本番 maker のモデル（opus/sonnet/haiku）
     max_iters: int = 12  # maker 呼び出しの総回数上限（暴走防止）
-    max_attempts: int = 3  # 1機能あたりの総試行上限（初回＋再挑戦）
+    max_attempts: int = 3  # 1機能あたりの総試行回数上限（初回を含む）
     max_budget_usd: float = (
         1.0  # 本番時の総コスト上限（claude --max-budget-usd に渡す）
     )
