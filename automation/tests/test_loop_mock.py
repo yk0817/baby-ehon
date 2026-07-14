@@ -156,11 +156,11 @@ def test_fixtures_placed_and_green_marks_done(tmp_path):
 
 
 def test_red_retries_then_fails(tmp_path):
-    # Contract: checker が赤を返すと attempts が増え、max_retries 到達で failed。
+    # Contract: checker が赤を返すと attempts が増え、max_attempts 到達で failed。
     maker = MockMaker(workspace=tmp_path / "ws", fixtures_root=tmp_path / "fx")
     state = _state(tmp_path, ids=("F1",))
 
-    report = run_loop(_config(tmp_path, max_retries=2), maker, _red, state)
+    report = run_loop(_config(tmp_path, max_attempts=2), maker, _red, state)
 
     assert set(report.failed) == {"F1"}
     assert report.stopped_reason == "all_failed"  # 全 FAILED は complete と区別する
@@ -173,19 +173,19 @@ def test_red_once_then_green_completes(tmp_path):
     maker = MockMaker(workspace=tmp_path / "ws", fixtures_root=tmp_path / "fx")
     state = _state(tmp_path, ids=("F1",))
 
-    report = run_loop(_config(tmp_path, max_retries=3), maker, _green_after_one, state)
+    report = run_loop(_config(tmp_path, max_attempts=3), maker, _green_after_one, state)
 
     assert report.state._get("F1").status == DONE
     assert report.state._get("F1").attempts == 1
 
 
 def test_max_iters_stops_runaway(tmp_path):
-    # Contract: max_iters で総呼び出しを打ち切る（max_retries が大きくても暴走しない）。
+    # Contract: max_iters で総呼び出しを打ち切る（max_attempts が大きくても暴走しない）。
     maker = MockMaker(workspace=tmp_path / "ws", fixtures_root=tmp_path / "fx")
     state = _state(tmp_path, ids=("F1",))
 
     report = run_loop(
-        _config(tmp_path, max_iters=3, max_retries=99), maker, _red, state
+        _config(tmp_path, max_iters=3, max_attempts=99), maker, _red, state
     )
 
     assert report.stopped_reason == "max_iters"
@@ -198,7 +198,7 @@ def test_maker_called_fresh_with_feedback(tmp_path):
     maker = RecordingMaker()
     state = _state(tmp_path, ids=("F1",))
 
-    run_loop(_config(tmp_path, max_retries=2), maker, _red, state)
+    run_loop(_config(tmp_path, max_attempts=2), maker, _red, state)
 
     assert [c[0] for c in maker.calls] == ["F1", "F1"]  # 同じ feature を2回、独立起動
     assert maker.calls[0][1] == ""  # 初回は feedback 無し

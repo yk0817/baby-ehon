@@ -135,7 +135,7 @@ def run_loop(
             state = state.mark_done(feature.id)
         else:
             state = state.record_failure(
-                feature.id, _tail(verify_log, maker_log), config.max_retries
+                feature.id, _tail(verify_log, maker_log), config.max_attempts
             )
 
         if state_path is not None:
