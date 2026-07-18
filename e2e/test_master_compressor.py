@@ -17,15 +17,7 @@
 
 from __future__ import annotations
 
-from pages import open_book
-
-
-def _reset_route_counters(page) -> None:
-    """接続経路の観測カウンタを 0 に戻す(タップ前の基準点を作る)。"""
-    page.evaluate(
-        "() => { window.__audio.oscillators = 0; window.__audio.gains = 0;"
-        " window.__audio.intoCompressor = 0; window.__audio.directToDestination = 0; }"
-    )
+from pages import open_book, reset_audio_counters
 
 
 def _tap_center(page, times: int = 1, settle_ms: int = 100) -> None:
@@ -57,7 +49,7 @@ def test_tone_routes_through_master(page, base_url):
     """単発トーン（playTone）の経路が osc→gain→マスター段になり destination 直結しない。"""
     open_book(page, base_url, "hikouki")
     _tap_center(page)  # 初回タップでマスター段を作らせてから経路を観測する
-    _reset_route_counters(page)
+    reset_audio_counters(page)
     _tap_center(page)
     audio = page.evaluate("() => window.__audio")
     assert audio["oscillators"] == 1, f"単発トーンの前提が崩れている: {audio}"
@@ -69,7 +61,7 @@ def test_cry_routes_through_master(page, base_url):
     """鳴き声（playCry）の全 chirp もマスター段を経由し destination 直結しない。"""
     open_book(page, base_url, "doubutsu")
     _tap_center(page)
-    _reset_route_counters(page)
+    reset_audio_counters(page)
     _tap_center(page)
     audio = page.evaluate("() => window.__audio")
     assert audio["oscillators"] >= 2, f"複数 chirp の鳴き声の前提が崩れている: {audio}"
@@ -106,7 +98,7 @@ def test_rapid_taps_all_route_through_single_master(page, base_url):
     """
     open_book(page, base_url, "doubutsu")
     _tap_center(page)
-    _reset_route_counters(page)
+    reset_audio_counters(page)
     _tap_center(page, times=5, settle_ms=40)
     audio = page.evaluate("() => window.__audio")
     assert audio["compressors"] == 1, f"連打でマスター段が増殖している: {audio}"
