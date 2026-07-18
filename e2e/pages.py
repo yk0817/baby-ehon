@@ -41,6 +41,28 @@ AUTO_ADVANCE_MS = 12000
 #: 語りかけ吹き出しの自動発火間隔（ehon.js の AUTO_TALK_MS）。clock 早送りで再現する。
 AUTO_TALK_MS = 5200
 
+#: window.__audio（conftest の FakeAudioContext）のうち「操作ごとに増える」観測カウンタ。
+#: リセット対象を増やすときはこのタプルに1行足すだけで両テスト（master_compressor /
+#: animal_cry）へ反映される。AudioContext と同寿命の contexts / compressors は、マスター段
+#: の個数検査がリセットをまたいで不変であることを前提にするため含めない。
+_AUDIO_EVENT_COUNTERS: tuple[str, ...] = (
+    "oscillators",
+    "gains",
+    "tones",
+    "intoCompressor",
+    "directToDestination",
+)
+
+
+def reset_audio_counters(page: Any) -> None:
+    """``window.__audio`` の操作ごとカウンタを 0 に戻し、タップ前の基準点を作る。
+
+    リセット対象は ``_AUDIO_EVENT_COUNTERS`` を単一の出所とする（フィールド追加漏れを
+    1 か所の修正で防ぐ）。
+    """
+    body = " ".join(f"window.__audio.{name} = 0;" for name in _AUDIO_EVENT_COUNTERS)
+    page.evaluate(f"() => {{ {body} }}")
+
 
 def open_shelf(page: Any, base_url: str) -> Any:
     """本棚（ルート index.html）を開く。"""

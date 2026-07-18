@@ -18,18 +18,10 @@
 
 from __future__ import annotations
 
-from pages import open_book
+from pages import open_book, reset_audio_counters
 
 #: 安全上限。playTone のピーク（0.18）と同等オーダーに収め、鳴き声で突出させない。
 MAX_CRY_GAIN = 0.25
-
-
-def _reset_audio_counters(page) -> None:
-    """``window.__audio`` の観測カウンタを 0 に戻す（タップ前の基準点を作る）。"""
-    page.evaluate(
-        "() => { window.__audio.oscillators = 0;"
-        " window.__audio.gains = 0; window.__audio.tones = 0; }"
-    )
 
 
 def _tap_center(page) -> None:
@@ -80,7 +72,7 @@ def test_tap_builds_multi_oscillator_cry(page, base_url):
     生成されることを ``window.__audio`` で観測する（= 単音 playTone との区別）。
     """
     open_book(page, base_url, "doubutsu")
-    _reset_audio_counters(page)
+    reset_audio_counters(page)
     _tap_center(page)
     audio = page.evaluate("() => window.__audio")
     assert audio["oscillators"] >= 2, (
@@ -100,7 +92,7 @@ def test_non_cry_book_keeps_single_tone(page, base_url):
     ことを回帰として固定する。
     """
     open_book(page, base_url, "hikouki")
-    _reset_audio_counters(page)
+    reset_audio_counters(page)
     _tap_center(page)
     audio = page.evaluate("() => window.__audio")
     assert audio["oscillators"] == 1, (
