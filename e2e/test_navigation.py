@@ -37,6 +37,7 @@ EXPECTED_FIRST_SCENE: dict[str, str] = {
     "doubutsu": "inu",
     "iro": "aka",
     "dansu": "usagi",
+    "irokatachi": "maru",
 }
 
 #: 1 冊あたりのシーン数（全ブック共通の契約）。

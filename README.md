@@ -14,6 +14,7 @@
 | 🐶 どうぶつパーティー | [`doubutsu/`](doubutsu/) | いぬ → ねこ → ぶた → ぞう → みんなでパーティー |
 | 🌈 いろの せかい | [`iro/`](iro/) | あか → きいろ → あお → みどり → にじ |
 | 💃 どうぶつダンス | [`dansu/`](dansu/) | うさぎ → ぺんぎん → さる → くま → みんなでダンス |
+| 🔺 いろと かたち | [`irokatachi/`](irokatachi/) | まる → さんかく → しかく → ほし → かたちあつまれ |
 
 トップの [`index.html`](index.html) は本棚（ランディング）。タップで各ブックに飛ぶ。
 
@@ -79,7 +80,7 @@ baby-ehon/
 │   ├── index.html
 │   ├── theme.css          # 背景・乗り物などのテーマ
 │   └── config.js          # シーン別 sfx / talks / colors / notes
-├── densha/  ├── kuruma/  ├── otenki/  ├── yorunosora/  ├── doubutsu/  ├── iro/  └── dansu/   ← それぞれ同構成
+├── densha/  ├── kuruma/  ├── otenki/  ├── yorunosora/  ├── doubutsu/  ├── iro/  ├── dansu/  └── irokatachi/   ← それぞれ同構成
 ```
 
 ## 新しいブックを追加するには

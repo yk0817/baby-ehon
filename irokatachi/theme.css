@@ -1,0 +1,110 @@
+/* いろと かたち えほん theme */
+
+/* このブック専用の色変数（背景・主役・バブル色に共通で使う） */
+:root {
+  --ik-red:   #ff5a5f;
+  --ik-blue:  #4a9ff5;
+  --ik-green: #5fc85f;
+}
+
+.room {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+/* 各シーンの背景（その色に染まった世界） */
+.room--maru     { background: linear-gradient(180deg, #ffe2e2 0%, #ffc4c4 60%, #ffa8a8 100%); }
+.room--sankaku  { background: linear-gradient(180deg, #d4ecff 0%, #aed8ff 60%, #8cc4ff 100%); }
+.room--shikaku  { background: linear-gradient(180deg, #fff6cf 0%, #ffe89a 60%, #ffd866 100%); }
+.room--hoshi    { background: linear-gradient(180deg, #e0f6da 0%, #bfeab0 60%, #9bdc88 100%); }
+.room--atsumare { background: linear-gradient(180deg, #ffe2e2 0%, #fff2c2 35%, #d8f0ff 70%, #d8f6d0 100%); }
+
+/* ───── ゆか ─────────────────────────────── */
+.floor {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 22%;
+  background: #ffb6cf;
+  border-top: 6px solid var(--ink);
+}
+.room--maru     .floor { background: #ff9a9a; }
+.room--sankaku  .floor { background: #76b7f0; }
+.room--shikaku  .floor { background: #ffcf66; }
+.room--hoshi    .floor { background: #7fcf6c; }
+.room--atsumare .floor { background: #ffd6a8; }
+
+/* ───── 主役（かたちのモチーフ）───────────── */
+.subject {
+  position: absolute;
+  left: 50%;
+  bottom: 16%;
+  translate: -50% 0;
+  width: clamp(180px, 46vmin, 360px);
+  aspect-ratio: 1;
+  z-index: 1;
+}
+.subject svg { width: 100%; height: 100%; display: block; }
+
+/* まる・さんかく・しかく・あつまれ: ぽよんと弾む */
+.subject--bob { animation: subjectBob 1.8s ease-in-out infinite; transform-origin: bottom center; }
+@keyframes subjectBob {
+  0%   { transform: translateY(0) scale(1); }
+  50%  { transform: translateY(-14px) scale(1.04); }
+  100% { transform: translateY(0) scale(1); }
+}
+
+/* ほし: ゆっくり左右に揺れながらきらめく */
+.subject--twirl { animation: subjectTwirl 3s ease-in-out infinite; transform-origin: center; }
+@keyframes subjectTwirl {
+  0%   { transform: rotate(-8deg) scale(1); }
+  50%  { transform: rotate(8deg) scale(1.06); }
+  100% { transform: rotate(-8deg) scale(1); }
+}
+
+/* ───── きらきら（背景の装飾）───────────────── */
+.sparkles {
+  position: absolute;
+  inset: 8% 0 30% 0;
+  pointer-events: none;
+}
+.sparkles i {
+  position: absolute;
+  width: 3.2vmin;
+  height: 3.2vmin;
+  background: #fff;
+  clip-path: polygon(50% 0, 61% 39%, 100% 50%, 61% 61%, 50% 100%, 39% 61%, 0 50%, 39% 39%);
+  opacity: .85;
+  animation: twinkle 2.4s ease-in-out infinite;
+}
+.sparkles i:nth-child(1) { top: 16%; left: 16%; animation-delay: 0s; }
+.sparkles i:nth-child(2) { top: 24%; right: 18%; animation-delay: .6s; }
+.sparkles i:nth-child(3) { top: 10%; left: 50%; animation-delay: 1.1s; }
+.sparkles i:nth-child(4) { top: 38%; left: 28%; animation-delay: 1.6s; }
+.sparkles i:nth-child(5) { top: 32%; right: 30%; animation-delay: .3s; }
+@keyframes twinkle {
+  0%, 100% { transform: scale(.6); opacity: .35; }
+  50%      { transform: scale(1);  opacity: .95; }
+}
+
+/* ───── シーン色に対応した SFX バブル／火花 ─────
+   共通エンジン（ehon.js）は config の colors 値をそのままクラス名として付与する。
+   ehon.css には pink/yellow/white のクラスが既存。このブック固有の red/blue/green
+   だけをここで補う。 */
+.sfx-bubble.red   { color: var(--ik-red); }
+.sfx-bubble.blue  { color: var(--ik-blue); }
+.sfx-bubble.green { color: var(--ik-green); }
+.key-bubble.red   { color: var(--ik-red); }
+.key-bubble.blue  { color: var(--ik-blue); }
+.key-bubble.green { color: var(--ik-green); }
+.spark.red   { background: var(--ik-red); }
+.spark.blue  { background: var(--ik-blue); }
+.spark.green { background: var(--ik-green); }
+
+@media (prefers-reduced-motion: reduce) {
+  .subject--bob, .subject--twirl, .sparkles i {
+    animation: none;
+  }
+}
